@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">BrainChis</string>
+
+    <!-- Pantalla de carga -->
+    <string name="cargando">Cargando...</string>
+
+    <!-- MainActivity -->
+    <string name="crear">Crear una partida</string>
+    <string name="unirse">Unirse a una partida</string>
+    <string name="ver_puntajes">Ver puntajes</string>
+</resources>
