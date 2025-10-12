@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="16dp"
+    android:paddingHorizontal="12dp"
+    android:background="@drawable/item_background"
+    android:layout_marginHorizontal="2dp"
+    android:layout_marginBottom="4dp"
+    android:gravity="center_vertical"
+    android:elevation="1dp">
+
+    <!-- Posición -->
+    <TextView
+        android:id="@+id/txtPosicion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="1"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#2D3748"
+        android:letterSpacing="0.01"/>
+
+    <!-- Nombre del Jugador -->
+    <TextView
+        android:id="@+id/txtNombreJugador"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:text="Carlos"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textColor="#4A5568"
+        android:letterSpacing="0.01"/>
+
+    <!-- Aciertos -->
+    <TextView
+        android:id="@+id/txtAciertos"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="12"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#48BB78"
+        android:letterSpacing="0.01"/>
+
+    <!-- Puntaje -->
+    <TextView
+        android:id="@+id/txtPuntajeJugador"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="850"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#667EEA"
+        android:letterSpacing="0.01"/>
+</LinearLayout>

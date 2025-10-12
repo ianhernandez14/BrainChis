@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FF"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Título Principal -->
+        <TextView
+            android:id="@+id/txtTituloAyuda"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💡 Ayuda BrainChis"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#2D3748"
+            android:gravity="center"
+            android:letterSpacing="0.02"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guía completa del juego"
+            android:textSize="16sp"
+            android:textColor="#667EEA"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Tarjeta Cómo Jugar -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="16dp"
+            card_view:cardElevation="4dp"
+            card_view:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24px">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🎲 Cómo Jugar"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#667EEA"
+                    android:letterSpacing="0.01"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="1. Cada jugador mueve su ficha por el tablero según el dado\n\n2. Al caer en casillas especiales, responde preguntas educativas para ganar puntos\n\n3. El objetivo es llevar todas tus fichas a la meta antes que los demás"
+                    android:textSize="16sp"
+                    android:textColor="#4A5568"
+                    android:lineSpacingExtra="4dp"
+                    android:letterSpacing="0.01"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Tarjeta Puntuación -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="16dp"
+            card_view:cardElevation="4dp"
+            card_view:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24px">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🏆 Sistema de Puntos"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#48BB78"
+                    android:letterSpacing="0.01"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Gana puntos al responder correctamente las preguntas y al avanzar tus fichas. Cuantos más aciertos, mayor será tu puntaje final. Los puntos se calculan basándose en:\n\n• Respuestas correctas\n• Velocidad de respuesta\n• Estrategia de movimiento"
+                    android:textSize="16sp"
+                    android:textColor="#4A5568"
+                    android:lineSpacingExtra="4dp"
+                    android:letterSpacing="0.01"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Tarjeta Consejos -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="16dp"
+            card_view:cardElevation="4dp"
+            card_view:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="32dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24px">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="💡 Estrategias y Consejos"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#ED8936"
+                    android:letterSpacing="0.01"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Piensa antes de mover tus fichas\n• Prioriza responder correctamente para ganar más puntos\n• Observa los movimientos de tus oponentes\n• Planifica tu estrategia a largo plazo\n• Usa las casillas especiales a tu favor"
+                    android:textSize="16sp"
+                    android:textColor="#4A5568"
+                    android:lineSpacingExtra="6dp"
+                    android:letterSpacing="0.01"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Botón volver -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnVolverAyuda"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:elevation="0dp"
+            android:letterSpacing="0.01"
+            android:paddingHorizontal="32dp"
+            android:text="Volver al Menú"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="#667EEA"
+            app:cornerRadius="12dp" />
+
+    </LinearLayout>
+</ScrollView>
