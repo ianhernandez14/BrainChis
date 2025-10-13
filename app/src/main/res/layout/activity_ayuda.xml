@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F8F9FF"
-    android:padding="20dp">
+    android:padding="20dp"
+    android:id="@+id/main">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,7 +18,7 @@
             android:id="@+id/txtTituloAyuda"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="💡 Ayuda BrainChis"
+            android:text="@string/ayuda_titulo"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="#2D3748"
@@ -29,7 +30,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Guía completa del juego"
+            android:text="@string/ayuda_subtitulo"
             android:textSize="16sp"
             android:textColor="#667EEA"
             android:gravity="center"
@@ -54,7 +55,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🎲 Cómo Jugar"
+                    android:text="@string/ayuda_como_jugar_titulo"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="#667EEA"
@@ -64,7 +65,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="1. Cada jugador mueve su ficha por el tablero según el dado\n\n2. Al caer en casillas especiales, responde preguntas educativas para ganar puntos\n\n3. El objetivo es llevar todas tus fichas a la meta antes que los demás"
+                    android:text="@string/ayuda_como_jugar_descripcion"
                     android:textSize="16sp"
                     android:textColor="#4A5568"
                     android:lineSpacingExtra="4dp"
@@ -91,7 +92,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🏆 Sistema de Puntos"
+                    android:text="@string/ayuda_puntos_titulo"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="#48BB78"
@@ -101,7 +102,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Gana puntos al responder correctamente las preguntas y al avanzar tus fichas. Cuantos más aciertos, mayor será tu puntaje final. Los puntos se calculan basándose en:\n\n• Respuestas correctas\n• Velocidad de respuesta\n• Estrategia de movimiento"
+                    android:text="@string/ayuda_puntos_descripcion"
                     android:textSize="16sp"
                     android:textColor="#4A5568"
                     android:lineSpacingExtra="4dp"
@@ -128,7 +129,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💡 Estrategias y Consejos"
+                    android:text="@string/ayuda_estrategias_titulo"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="#ED8936"
@@ -138,7 +139,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="• Piensa antes de mover tus fichas\n• Prioriza responder correctamente para ganar más puntos\n• Observa los movimientos de tus oponentes\n• Planifica tu estrategia a largo plazo\n• Usa las casillas especiales a tu favor"
+                    android:text="@string/ayuda_estrategias_descripcion"
                     android:textSize="16sp"
                     android:textColor="#4A5568"
                     android:lineSpacingExtra="6dp"
@@ -156,7 +157,7 @@
             android:elevation="0dp"
             android:letterSpacing="0.01"
             android:paddingHorizontal="32dp"
-            android:text="Volver al Menú"
+            android:text="@string/ayuda_boton_volver"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"

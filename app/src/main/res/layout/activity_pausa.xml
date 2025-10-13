@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="#80000000">
 
-    <!-- Usamos CardView para conseguir esquinas redondeadas sin drawable -->
     <androidx.cardview.widget.CardView
         android:id="@+id/panelPausa"
         android:layout_width="320dp"
@@ -29,7 +28,7 @@
                 android:id="@+id/txtTituloPausa"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⏸ Juego en Pausa"
+                android:text="@string/pausa_titulo"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#2D3748"
@@ -42,7 +41,7 @@
                 android:id="@+id/btnReanudar"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="▶ Reanudar Partida"
+                android:text="@string/pausa_boton_reanudar"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:cornerRadius="12dp"
@@ -58,7 +57,7 @@
                 android:id="@+id/btnReiniciar"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="🔄 Reiniciar Juego"
+                android:text="@string/pausa_boton_reiniciar"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:cornerRadius="12dp"
@@ -74,7 +73,7 @@
                 android:id="@+id/btnMenuPrincipal"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="🏠 Menú Principal"
+                android:text="@string/pausa_boton_menu"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:cornerRadius="12dp"

@@ -4,8 +4,43 @@
     <!-- Pantalla de carga -->
     <string name="cargando">Cargando...</string>
 
-    <!-- MainActivity -->
+    <!-- main_activity.xml -->
     <string name="crear">Crear una partida</string>
     <string name="unirse">Unirse a una partida</string>
     <string name="ver_puntajes">Ver puntajes</string>
+
+    <!-- activity_puntaje.xml -->
+    <string name="puntaje_titulo">🏆 Clasificación</string>
+    <string name="puntaje_subtitulo">Los jugadores más sabios del tablero</string>
+    <string name="puntaje_header_gato">#</string>
+    <string name="puntaje_header_jugador">Jugador</string>
+    <string name="puntaje_header_aciertos">Aciertos</string>
+    <string name="puntaje_header_puntaje">Puntaje</string>
+    <string name="puntaje_boton_volver">Volver al Menú Principal</string>
+
+    <!-- activity_ayuda.xml -->
+    <string name="ayuda_titulo">💡 Ayuda</string>
+    <string name="ayuda_subtitulo">Guía completa del juego</string>
+    <string name="ayuda_como_jugar_titulo">🎲 Cómo Jugar</string>
+    <string name="ayuda_como_jugar_descripcion">1. Cada jugador mueve su ficha por el tablero según
+        el dado\n\n2. Al caer en casillas especiales, responde preguntas educativas para obtener
+        puntos y ventajas a la hora del juego\n\n3. El objetivo es llevar todas tus fichas a la meta antes que los demás
+    </string>
+    <string name="ayuda_puntos_titulo">🏆 Sistema de Puntos</string>
+    <string name="ayuda_puntos_descripcion">Gana puntos y ventajas al responder correctamente las preguntas y
+        al avanzar tus fichas. Cuantos más aciertos, mayor será tu puntaje final. Los puntos se
+        calculan basándose en:\n\n• Respuestas correctas\n• Velocidad de respuesta
+    </string>
+    <string name="ayuda_estrategias_titulo">💡 Estrategias y Consejos</string>
+    <string name="ayuda_estrategias_descripcion">• Piensa antes de mover tus fichas\n• Prioriza
+        responder correctamente para ganar más puntos\n• Observa los movimientos de tus oponentes\n•
+        Planifica tu estrategia a largo plazo\n• Usa las casillas especiales a tu favor
+    </string>
+    <string name="ayuda_boton_volver">Volver al Menú</string>
+
+    <!-- activity_pausa.xml -->
+    <string name="pausa_titulo">⏸ Juego en Pausa</string>
+    <string name="pausa_boton_reanudar">▶ Reanudar Partida</string>
+    <string name="pausa_boton_reiniciar">🔄 Reiniciar Juego</string>
+    <string name="pausa_boton_menu">🏠 Menú Principal</string>
 </resources>
