@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/patron_fondo"
     android:id="@+id/main">
 
     <com.proyectofinal.brainchis.Tablero
@@ -11,6 +13,99 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+
+    <!-- Dado rojo (jugador superior izquierdo) -->
+    <ImageView
+        android:id="@+id/dado_rojo"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/dado_signo"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tablero"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <ImageView
+        android:id="@+id/dado_powerup_rojo"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@drawable/powerup"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@id/dado_rojo"
+        app:layout_constraintBottom_toTopOf="@id/tablero"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="18dp"/>
+
+    <!-- Dado verde (jugador superior derecho) -->
+    <ImageView
+        android:id="@+id/dado_verde"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/dado_signo"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tablero"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <ImageView
+        android:id="@+id/dado_powerup_verde"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@drawable/powerup"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@id/dado_verde"
+        app:layout_constraintBottom_toTopOf="@id/tablero"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="18dp"/>
+
+    <!-- Dado azul (jugador inferior izquierdo) -->
+    <ImageView
+        android:id="@+id/dado_azul"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/dado_signo"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tablero"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"/>
+
+    <ImageView
+        android:id="@+id/dado_powerup_azul"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@drawable/powerup"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@id/dado_azul"
+        app:layout_constraintTop_toBottomOf="@id/tablero"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="18dp"/>
+
+    <!-- Dado amarillo (jugador inferior derecho) -->
+    <ImageView
+        android:id="@+id/dado_amarillo"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/dado_signo"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tablero"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"/>
+
+    <ImageView
+        android:id="@+id/dado_powerup_amarillo"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@drawable/powerup"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@id/dado_amarillo"
+        app:layout_constraintTop_toBottomOf="@id/tablero"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="18dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
