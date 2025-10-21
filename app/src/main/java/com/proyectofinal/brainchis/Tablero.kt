@@ -50,23 +50,6 @@ class Tablero: View
         }
     }
 
-    override fun onTouchEvent(event: android.view.MotionEvent): Boolean
-    {
-        if(event.action == android.view.MotionEvent.ACTION_DOWN)
-        {
-            val casilla = measuredWidth / 15f
-            val columna = (event.x / casilla).toInt()
-            val fila = (event.y / casilla).toInt()
-
-            //Guardamos la casilla seleccionada
-            casillaSeleccionadaX = columna
-            casillaSeleccionadaY = fila
-
-            invalidate() //Redibujar el tablero
-        }
-        return true
-    }
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int)
     {
         val ancho = MeasureSpec.getSize(widthMeasureSpec)
@@ -132,6 +115,76 @@ class Tablero: View
 
         //Bordes (ya se incluye en la función dibujarBase)
         canvas.drawRect(x, y, x + casilla*6, y + casilla*6, pBorde)
+
+        // --- Dibujar cuadro blanco con borde y fichas ---
+        val bordeTam = casilla * 0.5f
+        val cuadroTam = casilla * 2
+        val inicioX = x + (casilla * 3) - cuadroTam / 2 - bordeTam
+        val inicioY = y + (casilla * 3) - cuadroTam / 2 - bordeTam
+        val finX = inicioX + cuadroTam + bordeTam * 2
+        val finY = inicioY + cuadroTam + bordeTam * 2
+
+// Dibujar borde blanco exterior
+        pRelleno.color = Color.WHITE
+        canvas.drawRect(inicioX, inicioY, finX, finY, pRelleno)
+
+// Dibujar cuadro interno blanco (2x2)
+        val cuadroInteriorX = inicioX + bordeTam
+        val cuadroInteriorY = inicioY + bordeTam
+        val cuadroInteriorFinX = cuadroInteriorX + cuadroTam
+        val cuadroInteriorFinY = cuadroInteriorY + cuadroTam
+        canvas.drawRect(cuadroInteriorX, cuadroInteriorY, cuadroInteriorFinX, cuadroInteriorFinY, pRelleno)
+
+// Determinar la imagen según el color de base
+        val nombreRecurso = when (color)
+        {
+            colorBaseRojo -> "ficha_roja"
+            colorBaseVerde -> "ficha_verde"
+            colorBaseAzul -> "ficha_azul"
+            colorBaseAmarillo -> "ficha_amarilla"
+            else -> "ficha_roja"
+        }
+
+        val resId = resources.getIdentifier(nombreRecurso, "drawable", context.packageName)
+        val imagen = ContextCompat.getDrawable(context, resId)
+
+        // Dibujar las 4 fichas (2x2)
+        if (imagen != null)
+        {
+            val anchoFichaEspacio = cuadroTam / 2
+            val altoFichaEspacio = cuadroTam / 2
+
+            // proporción original de la imagen (ancho/alto)
+            val proporcionOriginal = 225f / 375f // ancho / alto
+            val factorEscala = 1.3f // puedes ajustar este valor a gusto (1.0 = tamaño normal, 1.5 = 50% más grande)
+
+            val anchoFichaBase = if (anchoFichaEspacio / altoFichaEspacio < proporcionOriginal)
+                anchoFichaEspacio
+            else
+                altoFichaEspacio * proporcionOriginal
+
+            val altoFichaBase = anchoFichaBase / proporcionOriginal
+
+            val anchoFichaReal = anchoFichaBase * factorEscala
+            val altoFichaReal = altoFichaBase * factorEscala
+
+            for (fila in 0..1)
+            {
+                for (col in 0..1)
+                {
+                    val cx = cuadroInteriorX + col * anchoFichaEspacio + anchoFichaEspacio / 2
+                    val cy = cuadroInteriorY + fila * altoFichaEspacio + altoFichaEspacio / 2
+
+                    val left = cx - anchoFichaReal / 2
+                    val top = cy - altoFichaReal / 2
+                    val right = cx + anchoFichaReal / 2
+                    val bottom = cy + altoFichaReal / 2
+
+                    imagen.setBounds(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
+                    imagen.draw(canvas)
+                }
+            }
+        }
     }
 
     private fun dibujarEstrella(canvas: Canvas, x: Float, y: Float, casilla: Float, color: Int)
@@ -170,6 +223,7 @@ class Tablero: View
         canvas.drawPath(estrella, pRelleno)
 
         // Dibujar el borde de la estrella
+        pBorde.strokeWidth = 1f
         canvas.drawPath(estrella, pBorde)
     }
 

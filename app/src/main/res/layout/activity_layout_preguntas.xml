@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overlay para mostrar preguntas durante el juego -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/overlayPreguntas"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Contenedor principal centrado -->
+    <androidx.cardview.widget.CardView
+    android:id="@+id/cardPregunta"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    android:layout_gravity="bottom"
+    card_view:cardCornerRadius="20dp"
+    card_view:cardElevation="6dp"
+    card_view:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="15dp"
+        android:gravity="center">
+
+        <!-- Texto de la pregunta -->
+        <TextView
+            android:id="@+id/txtPregunta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="¿Cuál de los siguientes es un lenguaje de programación?"
+            android:textColor="#2D3748"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginVertical="10dp"/>
+
+        <!-- Contenedor de opciones (Grid 2x2) -->
+        <GridLayout
+            android:id="@+id/gridOpciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="2"
+            android:alignmentMode="alignMargins"
+            android:useDefaultMargins="true">
+
+            <!-- Opción 1 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpcion1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:text="Python"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:paddingVertical="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#667EEA" />
+
+            <!-- Opción 2 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpcion2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:text="HTML"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:paddingVertical="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#48BB78" />
+
+            <!-- Opción 3 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpcion3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:text="CSS"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:paddingVertical="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#ED8936" />
+
+            <!-- Opción 4 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpcion4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:text="Windows"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:paddingVertical="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#BD39D3" />
+
+        </GridLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelar"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:text="@string/layout_preguntas_cancelar"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#E53E3E"
+                app:cornerRadius="12dp"
+                app:layout_constraintWidth_percent="0.8"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginVertical="16dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    </FrameLayout>

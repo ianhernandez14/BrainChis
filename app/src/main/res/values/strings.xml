@@ -43,4 +43,6 @@
     <string name="pausa_boton_reanudar">▶ Reanudar Partida</string>
     <string name="pausa_boton_reiniciar">🔄 Reiniciar Juego</string>
     <string name="pausa_boton_menu">🏠 Menú Principal</string>
+
+    <string name="layout_preguntas_cancelar">Cancelar</string>
 </resources>
