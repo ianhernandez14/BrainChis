@@ -17,14 +17,13 @@ class Tablero: View
     private val pBorde = Paint(Paint.ANTI_ALIAS_FLAG)
     private val pRelleno = Paint(Paint.ANTI_ALIAS_FLAG)
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private var casillaSeleccionadaX = -1
-    private var casillaSeleccionadaY = -1
 
     //Variables para almacenar los colores cargados
-    private var colorBaseRojo: Int = Color.RED
-    private var colorBaseVerde: Int = Color.GREEN
-    private var colorBaseAzul: Int = Color.BLUE
-    private var colorBaseAmarillo: Int = Color.YELLOW
+    private var colorBaseRojo: Int = 0
+    private var colorBaseVerde: Int = 0
+    private var colorBaseAzul: Int = 0
+    private var colorBaseAmarillo: Int = 0
+    private var colorBaseGris: Int = 0
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -40,11 +39,12 @@ class Tablero: View
         gridPaint.color = Color.DKGRAY
         gridPaint.strokeWidth = 2f
 
-        try {
+        try{
             colorBaseRojo = ContextCompat.getColor(context, R.color.rojo)
             colorBaseVerde = ContextCompat.getColor(context, R.color.verde)
             colorBaseAzul = ContextCompat.getColor(context, R.color.azul)
             colorBaseAmarillo = ContextCompat.getColor(context, R.color.amarillo)
+            colorBaseGris = ContextCompat.getColor(context, R.color.gris)
         }catch (e: Exception){
             e.printStackTrace()
         }
@@ -89,20 +89,6 @@ class Tablero: View
 
         //Dibujar borde del tablero
         canvas.drawRect(0f, 0f, ancho, ancho, pBorde)
-
-        //Dibujar la casilla con otro color si se seleccionó con un toque
-        if (casillaSeleccionadaX >= 0 && casillaSeleccionadaY >= 0)
-        {
-            val casilla = measuredWidth / 15f
-            pRelleno.color = Color.argb(100, 255, 0, 0) //rojo semitransparente
-            canvas.drawRect(
-                casillaSeleccionadaX * casilla,
-                casillaSeleccionadaY * casilla,
-                (casillaSeleccionadaX + 1) * casilla,
-                (casillaSeleccionadaY + 1) * casilla,
-                pRelleno
-            )
-        }
     }
 
     private fun dibujarBase(canvas: Canvas, x: Float, y: Float, color: Int)
@@ -116,7 +102,7 @@ class Tablero: View
         //Bordes (ya se incluye en la función dibujarBase)
         canvas.drawRect(x, y, x + casilla*6, y + casilla*6, pBorde)
 
-        // --- Dibujar cuadro blanco con borde y fichas ---
+        //--- Dibujar cuadro blanco con borde y fichas ---
         val bordeTam = casilla * 0.5f
         val cuadroTam = casilla * 2
         val inicioX = x + (casilla * 3) - cuadroTam / 2 - bordeTam
@@ -124,18 +110,18 @@ class Tablero: View
         val finX = inicioX + cuadroTam + bordeTam * 2
         val finY = inicioY + cuadroTam + bordeTam * 2
 
-// Dibujar borde blanco exterior
+        //Dibujar borde blanco exterior
         pRelleno.color = Color.WHITE
         canvas.drawRect(inicioX, inicioY, finX, finY, pRelleno)
 
-// Dibujar cuadro interno blanco (2x2)
+        //Dibujar cuadro interno blanco (2x2)
         val cuadroInteriorX = inicioX + bordeTam
         val cuadroInteriorY = inicioY + bordeTam
         val cuadroInteriorFinX = cuadroInteriorX + cuadroTam
         val cuadroInteriorFinY = cuadroInteriorY + cuadroTam
         canvas.drawRect(cuadroInteriorX, cuadroInteriorY, cuadroInteriorFinX, cuadroInteriorFinY, pRelleno)
 
-// Determinar la imagen según el color de base
+        //Determinar la imagen según el color de base
         val nombreRecurso = when (color)
         {
             colorBaseRojo -> "ficha_roja"
@@ -148,17 +134,17 @@ class Tablero: View
         val resId = resources.getIdentifier(nombreRecurso, "drawable", context.packageName)
         val imagen = ContextCompat.getDrawable(context, resId)
 
-        // Dibujar las 4 fichas (2x2)
-        if (imagen != null)
+        //Dibujar las 4 fichas (2x2)
+        if(imagen != null)
         {
             val anchoFichaEspacio = cuadroTam / 2
             val altoFichaEspacio = cuadroTam / 2
 
-            // proporción original de la imagen (ancho/alto)
-            val proporcionOriginal = 225f / 375f // ancho / alto
-            val factorEscala = 1.3f // puedes ajustar este valor a gusto (1.0 = tamaño normal, 1.5 = 50% más grande)
+            //proporción original de la imagen (ancho/alto)
+            val proporcionOriginal = 225f / 375f //ancho / alto
+            val factorEscala = 1.3f //puedes ajustar este valor a gusto (1.0 = tamaño normal, 1.5 = 50% más grande)
 
-            val anchoFichaBase = if (anchoFichaEspacio / altoFichaEspacio < proporcionOriginal)
+            val anchoFichaBase = if(anchoFichaEspacio / altoFichaEspacio < proporcionOriginal)
                 anchoFichaEspacio
             else
                 altoFichaEspacio * proporcionOriginal
@@ -199,17 +185,17 @@ class Tablero: View
         //El punto de partida es arriba (ángulo PI/2)
         val startAngle = PI / 2.0
 
-        for (i in 0 until numPuntas) {
+        for(i in 0 until numPuntas)
+        {
             //Ángulo de la punta exterior
             val anguloExterior = startAngle - i * 2 * PI / numPuntas
             val puntoX = cX + radioExterior * cos(anguloExterior).toFloat()
             val puntoY = cY - radioExterior * sin(anguloExterior).toFloat()
 
-            if (i == 0) {
+            if(i == 0)
                 estrella.moveTo(puntoX, puntoY)
-            } else {
+            else
                 estrella.lineTo(puntoX, puntoY)
-            }
 
             //Ángulo del punto interior
             val anguloInterior = startAngle - (i * 2 * PI / numPuntas + PI / numPuntas)
@@ -222,7 +208,7 @@ class Tablero: View
         pRelleno.color = color
         canvas.drawPath(estrella, pRelleno)
 
-        // Dibujar el borde de la estrella
+        //Dibujar el borde de la estrella
         pBorde.strokeWidth = 1f
         canvas.drawPath(estrella, pBorde)
     }
@@ -239,8 +225,8 @@ class Tablero: View
             val top = i * casilla
             val right = 8 * casilla
             val bottom = (i + 1) * casilla
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Camino Rojo (Columnas 1-5, Fila 7)
@@ -250,8 +236,8 @@ class Tablero: View
             val top = 7 * casilla
             val right = (i + 1) * casilla
             val bottom = 8 * casilla
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Camino Amarillo (Columnas 9-13, Fila 7)
@@ -261,8 +247,8 @@ class Tablero: View
             val top = 7 * casilla
             val right = (i + 1) * casilla
             val bottom = 8 * casilla
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Camino Azul (Filas 9-13, Columna 7)
@@ -272,8 +258,8 @@ class Tablero: View
             val top = i * casilla
             val right = 8 * casilla
             val bottom = (i + 1) * casilla
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Casilla Verde (8, 1) - Primera casilla después de la base
@@ -283,8 +269,8 @@ class Tablero: View
             val right = 9 * casilla
             val bottom = 2 * casilla
             pRelleno.color = colorBaseVerde
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Casilla Roja (1, 6)
@@ -294,8 +280,8 @@ class Tablero: View
             val right = 2 * casilla
             val bottom = 7 * casilla
             pRelleno.color = colorBaseRojo
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Casilla Amarilla (13, 8)
@@ -305,8 +291,8 @@ class Tablero: View
             val right = 14 * casilla
             val bottom = 9 * casilla
             pRelleno.color = colorBaseAmarillo
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Casilla Azul (6, 13)
@@ -316,8 +302,52 @@ class Tablero: View
             val right = 7 * casilla
             val bottom = 14 * casilla
             pRelleno.color = colorBaseAzul
-            canvas.drawRect(left, top, right, bottom, pRelleno) // Relleno
-            canvas.drawRect(left, top, right, bottom, pBorde)   // Borde
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
+        }
+
+        //Casilla (6, 2)
+        run {
+            val left = 6 * casilla
+            val top = 2 * casilla
+            val right = 7 * casilla
+            val bottom = 3 * casilla
+            pRelleno.color = colorBaseGris
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
+        }
+
+        //Casilla (2, 8)
+        run {
+            val left = 2 * casilla
+            val top = 8 * casilla
+            val right = 3 * casilla
+            val bottom = 9 * casilla
+            pRelleno.color = colorBaseGris
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
+        }
+
+        //Casilla (12, 6)
+        run {
+            val left = 12 * casilla
+            val top = 6 * casilla
+            val right = 13 * casilla
+            val bottom = 7 * casilla
+            pRelleno.color = colorBaseGris
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
+        }
+
+        //Casilla (8, 12)
+        run {
+            val left = 8 * casilla
+            val top = 12 * casilla
+            val right = 9 * casilla
+            val bottom = 13 * casilla
+            pRelleno.color = colorBaseGris
+            canvas.drawRect(left, top, right, bottom, pRelleno) //Relleno
+            canvas.drawRect(left, top, right, bottom, pBorde)   //Borde
         }
 
         //Estrella Roja (8, 1) - Coordenadas de las estrellas
@@ -328,6 +358,13 @@ class Tablero: View
         dibujarEstrella(canvas, 13 * casilla, 8 * casilla, casilla, colorEstrella)
         //Estrella Azul (6, 13)
         dibujarEstrella(canvas, 6 * casilla, 13 * casilla, casilla, colorEstrella)
+
+        //Resto de casillas especiales. Cada una va 5 posiciones antes de las casillas especiales
+        //que pertenecen a la casilla inicial de cada jugador cada que saca su primer ficha
+        dibujarEstrella(canvas, 6 * casilla, 2 * casilla, casilla, colorEstrella)
+        dibujarEstrella(canvas, 2 * casilla, 8 * casilla, casilla, colorEstrella)
+        dibujarEstrella(canvas, 12 * casilla, 6 * casilla, casilla, colorEstrella)
+        dibujarEstrella(canvas, 8 * casilla, 12 * casilla, casilla, colorEstrella)
     }
 
     private fun dibujarCentro(canvas: Canvas, casilla: Float)
@@ -346,47 +383,47 @@ class Tablero: View
         val path = Path()
 
         //Triángulo Rojo (Arriba)
-        pRelleno.color = colorBaseVerde // Relleno
+        pRelleno.color = colorBaseVerde //Relleno
         path.reset()
         path.moveTo(x0, y0)
         path.lineTo(x0 + lado, y0)
         path.lineTo(centroX, centroY)
         path.close()
         canvas.drawPath(path, pRelleno)
-        // Borde (para que tenga consistencia con el borde de las casillas)
+        //Borde (para que tenga consistencia con el borde de las casillas)
         canvas.drawPath(path, pBorde)
 
         //Triángulo Verde (Derecha)
-        pRelleno.color = colorBaseAmarillo // Relleno
+        pRelleno.color = colorBaseAmarillo //Relleno
         path.reset()
         path.moveTo(x0 + lado, y0)
         path.lineTo(x0 + lado, y0 + lado)
         path.lineTo(centroX, centroY)
         path.close()
         canvas.drawPath(path, pRelleno)
-        // Borde
+        //Borde
         canvas.drawPath(path, pBorde)
 
         //Triángulo Azul (Abajo)
-        pRelleno.color = colorBaseAzul // Relleno
+        pRelleno.color = colorBaseAzul //Relleno
         path.reset()
         path.moveTo(x0, y0 + lado)
         path.lineTo(x0 + lado, y0 + lado)
         path.lineTo(centroX, centroY)
         path.close()
         canvas.drawPath(path, pRelleno)
-        // Borde
+        //Borde
         canvas.drawPath(path, pBorde)
 
         //Triángulo Amarillo (Izquierda)
-        pRelleno.color = colorBaseRojo // Relleno
+        pRelleno.color = colorBaseRojo //Relleno
         path.reset()
         path.moveTo(x0, y0)
         path.lineTo(x0, y0 + lado)
         path.lineTo(centroX, centroY)
         path.close()
         canvas.drawPath(path, pRelleno)
-        // Borde
+        //Borde
         canvas.drawPath(path, pBorde)
     }
 }
