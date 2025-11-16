@@ -7,5 +7,6 @@ data class Jugador(
         Ficha(2, color),
         Ficha(3, color),
         Ficha(4, color)
-    )
+    ),
+    var tirosSinSeis: Int = 0
 )

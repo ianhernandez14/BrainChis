@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import kotlin.math.cos
@@ -14,6 +16,14 @@ import kotlin.math.PI
 
 class Tablero: View
 {
+    //Se llama cuando el usuario toca una celda de la cuadrícula
+    interface OnCasillaTocadaListener{
+        fun onCasillaTocada(col: Int, fila: Int)
+    }
+
+    lateinit var onCasillaTocadaListener: MainActivity
+    private var listener: OnCasillaTocadaListener? = null
+
     private val pBorde = Paint(Paint.ANTI_ALIAS_FLAG)
     private val pRelleno = Paint(Paint.ANTI_ALIAS_FLAG)
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -24,6 +34,7 @@ class Tablero: View
     private var colorBaseAzul: Int = 0
     private var colorBaseAmarillo: Int = 0
     private var colorBaseGris: Int = 0
+    private var listaJugadores: List<Jugador> = emptyList()
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -50,20 +61,72 @@ class Tablero: View
         }
     }
 
+    companion object
+    {
+        private val TAG = "ParchisDEBUG"
+
+        //Mapa para el camino principal (Posición 1 a 52)
+        //(índice 0 = pos 1, índice 51 = pos 52)
+        private val CAMINO_PRINCIPAL = listOf(
+            (1 to 6), (2 to 6), (3 to 6), (4 to 6), (5 to 6), //1-5
+            (6 to 5), (6 to 4), (6 to 3), (6 to 2), (6 to 1), (6 to 0), //6-11
+            (7 to 0), (8 to 0), //12-13
+            (8 to 1), (8 to 2), (8 to 3), (8 to 4), (8 to 5), //14-18 (Salida Verde)
+            (9 to 6), (10 to 6), (11 to 6), (12 to 6), (13 to 6), (14 to 6), //19-24
+            (14 to 7), (14 to 8), //25-26
+            (13 to 8), (12 to 8), (11 to 8), (10 to 8), (9 to 8), //27-31 (Salida Amarillo)
+            (8 to 9), (8 to 10), (8 to 11), (8 to 12), (8 to 13), (8 to 14), //32-37
+            (7 to 14), (6 to 14), //38-39
+            (6 to 13), (6 to 12), (6 to 11), (6 to 10), (6 to 9), //40-44 (Salida Azul)
+            (5 to 8), (4 to 8), (3 to 8), (2 to 8), (1 to 8), (0 to 8), //45-50
+            (0 to 7), (0 to 6) //51-52
+        )
+
+        //Mapas para las metas (6 casillas cada una)
+
+        //Meta Roja: Col 1-6, Fila 7
+        private val META_ROJA = listOf(
+            (1 to 7), (2 to 7), (3 to 7), (4 to 7), (5 to 7), (6 to 7)
+        ) //Pos 53-58
+
+        //Meta Verde: Col 7, Fila 1-6
+        private val META_VERDE = listOf(
+            (7 to 1), (7 to 2), (7 to 3), (7 to 4), (7 to 5), (7 to 6)
+        ) //Pos 59-64
+
+        //Meta Amarilla: Col 13-8, Fila 7
+        private val META_AMARILLA = listOf(
+            (13 to 7), (12 to 7), (11 to 7), (10 to 7), (9 to 7), (8 to 7)
+        ) //Pos 65-70
+
+        //Meta Azul: Col 7, Fila 13-8
+        private val META_AZUL = listOf(
+            (7 to 13), (7 to 12), (7 to 11), (7 to 10), (7 to 9), (7 to 8)
+        ) //Pos 71-76
+
+        //Coordenadas relativas (gridX, gridY) para las 4 fichas en la base
+        private val POS_BASE = listOf(
+            (2.5f to 2.5f), //Ficha 1
+            (3.5f to 2.5f), //Ficha 2
+            (2.5f to 3.5f), //Ficha 3
+            (3.5f to 3.5f)  //Ficha 4
+        )
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int)
     {
         val ancho = MeasureSpec.getSize(widthMeasureSpec)
         val alto = MeasureSpec.getSize(heightMeasureSpec)
         val lado = minOf(ancho, alto)
-        setMeasuredDimension(ancho, lado) //tablero cuadrado
+        setMeasuredDimension(ancho, lado) //Tablero cuadrado
     }
 
     override fun onDraw(canvas: Canvas)
     {
         //Obtener el ancho de la pantalla en pixeles
         val ancho = measuredWidth.toFloat()
-        //Cada casilla debe medir ciertos pixeles, por lo que se divide el ancho de la pantalla entre 15
-        //y así obtener cuantos pixeles es para cada casilla
+        //Cada casilla debe medir ciertos pixeles, por lo que se divide el ancho de la pantalla
+        //entre 15 y así obtener cuantos pixeles es para cada casilla
         val casilla = ancho / 15f
 
         //Fondo blanco
@@ -87,6 +150,8 @@ class Tablero: View
         dibujarCentro(canvas, casilla)
         dibujarCaminos(canvas, casilla)
 
+        dibujarFichas(canvas)
+
         //Dibujar borde del tablero
         canvas.drawRect(0f, 0f, ancho, ancho, pBorde)
     }
@@ -99,7 +164,7 @@ class Tablero: View
 
         canvas.drawRect(x, y, x + casilla*6, y + casilla*6, pRelleno)
 
-        //Bordes (ya se incluye en la función dibujarBase)
+        //Bordes
         canvas.drawRect(x, y, x + casilla*6, y + casilla*6, pBorde)
 
         //--- Dibujar cuadro blanco con borde y fichas ---
@@ -120,57 +185,6 @@ class Tablero: View
         val cuadroInteriorFinX = cuadroInteriorX + cuadroTam
         val cuadroInteriorFinY = cuadroInteriorY + cuadroTam
         canvas.drawRect(cuadroInteriorX, cuadroInteriorY, cuadroInteriorFinX, cuadroInteriorFinY, pRelleno)
-
-        //Determinar la imagen según el color de base
-        val nombreRecurso = when (color)
-        {
-            colorBaseRojo -> "ficha_roja"
-            colorBaseVerde -> "ficha_verde"
-            colorBaseAzul -> "ficha_azul"
-            colorBaseAmarillo -> "ficha_amarilla"
-            else -> "ficha_roja"
-        }
-
-        val resId = resources.getIdentifier(nombreRecurso, "drawable", context.packageName)
-        val imagen = ContextCompat.getDrawable(context, resId)
-
-        //Dibujar las 4 fichas (2x2)
-        if(imagen != null)
-        {
-            val anchoFichaEspacio = cuadroTam / 2
-            val altoFichaEspacio = cuadroTam / 2
-
-            //proporción original de la imagen (ancho/alto)
-            val proporcionOriginal = 225f / 375f //ancho / alto
-            val factorEscala = 1.3f //puedes ajustar este valor a gusto (1.0 = tamaño normal, 1.5 = 50% más grande)
-
-            val anchoFichaBase = if(anchoFichaEspacio / altoFichaEspacio < proporcionOriginal)
-                anchoFichaEspacio
-            else
-                altoFichaEspacio * proporcionOriginal
-
-            val altoFichaBase = anchoFichaBase / proporcionOriginal
-
-            val anchoFichaReal = anchoFichaBase * factorEscala
-            val altoFichaReal = altoFichaBase * factorEscala
-
-            for (fila in 0..1)
-            {
-                for (col in 0..1)
-                {
-                    val cx = cuadroInteriorX + col * anchoFichaEspacio + anchoFichaEspacio / 2
-                    val cy = cuadroInteriorY + fila * altoFichaEspacio + altoFichaEspacio / 2
-
-                    val left = cx - anchoFichaReal / 2
-                    val top = cy - altoFichaReal / 2
-                    val right = cx + anchoFichaReal / 2
-                    val bottom = cy + altoFichaReal / 2
-
-                    imagen.setBounds(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
-                    imagen.draw(canvas)
-                }
-            }
-        }
     }
 
     private fun dibujarEstrella(canvas: Canvas, x: Float, y: Float, casilla: Float, color: Int)
@@ -215,7 +229,7 @@ class Tablero: View
 
     private fun dibujarCaminos(canvas: Canvas, casilla: Float)
     {
-        //El tablero es 15x15. Las coordenadas van de 0 a 14.
+        //El tablero es 15x15. Las coordenadas van de 0 a 14
         val colorEstrella = Color.WHITE
 
         //Camino Verde (Filas 1-5, Columna 7)
@@ -263,7 +277,7 @@ class Tablero: View
         }
 
         //Casilla Verde (8, 1) - Primera casilla después de la base
-        run {
+        run{
             val left = 8 * casilla
             val top = 1 * casilla
             val right = 9 * casilla
@@ -274,7 +288,7 @@ class Tablero: View
         }
 
         //Casilla Roja (1, 6)
-        run {
+        run{
             val left = 1 * casilla
             val top = 6 * casilla
             val right = 2 * casilla
@@ -285,7 +299,7 @@ class Tablero: View
         }
 
         //Casilla Amarilla (13, 8)
-        run {
+        run{
             val left = 13 * casilla
             val top = 8 * casilla
             val right = 14 * casilla
@@ -296,7 +310,7 @@ class Tablero: View
         }
 
         //Casilla Azul (6, 13)
-        run {
+        run{
             val left = 6 * casilla
             val top = 13 * casilla
             val right = 7 * casilla
@@ -307,7 +321,7 @@ class Tablero: View
         }
 
         //Casilla (6, 2)
-        run {
+        run{
             val left = 6 * casilla
             val top = 2 * casilla
             val right = 7 * casilla
@@ -318,7 +332,7 @@ class Tablero: View
         }
 
         //Casilla (2, 8)
-        run {
+        run{
             val left = 2 * casilla
             val top = 8 * casilla
             val right = 3 * casilla
@@ -329,7 +343,7 @@ class Tablero: View
         }
 
         //Casilla (12, 6)
-        run {
+        run{
             val left = 12 * casilla
             val top = 6 * casilla
             val right = 13 * casilla
@@ -340,7 +354,7 @@ class Tablero: View
         }
 
         //Casilla (8, 12)
-        run {
+        run{
             val left = 8 * casilla
             val top = 12 * casilla
             val right = 9 * casilla
@@ -425,5 +439,312 @@ class Tablero: View
         canvas.drawPath(path, pRelleno)
         //Borde
         canvas.drawPath(path, pBorde)
+    }
+
+    fun actualizarEstadoJuego(jugadores: List<Jugador>)
+    {
+        this.listaJugadores = jugadores
+        invalidate()
+    }
+
+    fun setOnCasillaTocadaListener(listener: OnCasillaTocadaListener){
+        this.listener = listener
+    }
+
+    private fun dibujarFichaIndividual(canvas: Canvas, casilla: Float, gridX: Float, gridY: Float,
+        color: ColorJugador, factorEscala: Float)
+    {
+        //Determinar la imagen según el color
+        val nombreRecurso = when(color)
+        {
+            ColorJugador.ROJO -> "ficha_roja"
+            ColorJugador.VERDE -> "ficha_verde"
+            ColorJugador.AZUL -> "ficha_azul"
+            ColorJugador.AMARILLO -> "ficha_amarilla"
+        }
+
+        val resId = resources.getIdentifier(nombreRecurso, "drawable",
+            context.packageName)
+        val imagen = ContextCompat.getDrawable(context, resId) ?: return
+
+        //--- Lógica de escalado ---
+        val proporcionOriginal = 225f / 375f //ancho / alto
+
+        //Usamos el tamaño de la casilla como base
+        val anchoFichaBase = if(casilla / casilla < proporcionOriginal)
+            casilla
+        else
+            casilla * proporcionOriginal
+
+        val altoFichaBase = anchoFichaBase / proporcionOriginal
+        val anchoFichaReal = anchoFichaBase * factorEscala
+        val altoFichaReal = altoFichaBase * factorEscala
+
+        //Calcular centro
+        val cX = gridX * casilla
+        val cY = gridY * casilla
+
+        val left = cX - anchoFichaReal / 2
+        val top = cY - altoFichaReal / 2
+        val right = cX + anchoFichaReal / 2
+        val bottom = cY + altoFichaReal / 2
+
+        imagen.setBounds(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
+        imagen.draw(canvas)
+    }
+
+    private fun dibujarFichas(canvas: Canvas)
+    {
+        val casilla = measuredWidth / 15f
+
+        for (jugador in listaJugadores)
+        {
+            for (ficha in jugador.fichas)
+            {
+                var gridX = -1f
+                var gridY = -1f
+                var offsetX = 0f
+                var offsetY = 0f
+
+                when(ficha.estado)
+                {
+                    EstadoFicha.EN_JUEGO ->
+                    {
+                        val (x, y) = CAMINO_PRINCIPAL[ficha.posicionGlobal - 1]
+                        gridX = x + 0.5f
+                        gridY = y + 0.5f
+                    }
+
+                    EstadoFicha.EN_META ->
+                    {
+                        when(ficha.color)
+                        {
+                            ColorJugador.ROJO ->
+                            { //Pos 53-58
+                                val (x, y) = META_ROJA[ficha.posicionGlobal - 53]
+                                gridX = x + 0.5f
+                                gridY = y + 0.5f
+                            }
+                            ColorJugador.VERDE ->
+                            {
+                                val (x, y) = META_VERDE[ficha.posicionGlobal - 59]
+                                gridX = x + 0.5f
+                                gridY = y + 0.5f
+                            }
+                            ColorJugador.AMARILLO ->
+                            {
+                                //Pos 65-70
+                                val (x, y) = META_AMARILLA[ficha.posicionGlobal - 65]
+                                gridX = x + 0.5f
+                                gridY = y + 0.5f
+                            }
+                            ColorJugador.AZUL ->
+                            {   //Pos 71-76
+                                val (x, y) = META_AZUL[ficha.posicionGlobal - 71]
+                                gridX = x + 0.5f
+                                gridY = y + 0.5f
+                            }
+                        }
+                    }
+
+                    EstadoFicha.EN_BASE ->
+                    {
+                        val (baseOffsetX, baseOffsetY) = when(ficha.color)
+                        {
+                            ColorJugador.ROJO -> (0f to 0f)
+                            ColorJugador.VERDE -> (9f to 0f)
+                            ColorJugador.AZUL -> (0f to 9f)
+                            ColorJugador.AMARILLO -> (9f to 9f)
+                        }
+
+                        val (relX, relY) = POS_BASE[ficha.id - 1]
+                        gridX = baseOffsetX + relX
+                        gridY = baseOffsetY + relY
+                    }
+                }
+
+                //--- LÓGICA DE AGRUPACIÓN ---
+                /*Esto es para poder ajustar el tamaño y posición de las fichas cuando estén
+                agrupadas en una misma casilla.
+                Solo aplicamos desplazamiento si la ficha no está en la base*/
+
+                var factorEscalaDinamico = 1.3f
+
+                if(ficha.estado != EstadoFicha.EN_BASE)
+                {
+                    val pila = obtenerPilaEnCasilla(ficha.posicionGlobal)
+                    val total = pila.size
+
+                    //Si hay más de 1 ficha, calculamos su posición
+                    if(total > 1)
+                    {
+                        factorEscalaDinamico = 0.85f
+                        val indice = pila.indexOf(ficha)
+                        //18% del ancho de la casilla
+                        val factorDespl = 0.18f
+
+                        when(indice)
+                        {
+                            0 ->
+                            {
+                                //Arriba-Izquierda
+                                offsetX = -factorDespl
+                                offsetY = -factorDespl
+                            }
+                            1 ->
+                            {
+                                //Arriba-Derecha
+                                offsetX = factorDespl
+                                offsetY = -factorDespl
+                            }
+                            2 ->
+                            {
+                                //Abajo-Izquierda
+                                offsetX = -factorDespl
+                                offsetY = factorDespl
+                            }
+                            3 ->
+                            {
+                                //Abajo-Derecha
+                                offsetX = factorDespl
+                                offsetY = factorDespl
+                            }
+                            //Si hay 5 o más fichas, las distribuimos en un círculo
+                            else ->
+                            {
+                                //Reducimos la escala aún más para que quepan
+                                factorEscalaDinamico = 0.7f
+
+                                //El radio del círculo donde se colocarán las fichas
+                                val radioCirculo = 0.2f
+
+                                //Calculamos el ángulo para esta ficha
+                                val angulo = 2 * PI * indice / total
+
+                                // Calculamos el desplazamiento (offsetX, offsetY) usando trigonometría
+                                // cos(angulo) para X, sin(angulo) para Y
+                                offsetX = (radioCirculo * cos(angulo)).toFloat()
+                                offsetY = (radioCirculo * sin(angulo)).toFloat()
+                            }
+                        }
+                    }
+                }
+
+                if(gridX != -1f)
+                {
+                    //Aplicamos el desplazamiento (offsetX/offsetY) al centro
+                    dibujarFichaIndividual(canvas, casilla, gridX + offsetX, gridY + offsetY,
+                        ficha.color, factorEscalaDinamico)
+                }
+            }
+        }
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean
+    {
+        //Solo nos interesa el evento de tocar, no el de arrastrar
+        if(event.action != MotionEvent.ACTION_DOWN)
+            return true
+
+        //Obtener el tamaño de una casilla
+        val casilla = measuredWidth / 15f
+
+        //Calcular la columna y fila tocadas
+        val colTocada = (event.x / casilla).toInt()
+        val filaTocada = (event.y / casilla).toInt()
+
+        Log.v(TAG, "--- Tablero.onTouchEvent ---")
+        Log.v(TAG, "Toque en Píxeles (x:${event.x}, y:${event.y}) -> (Col: $colTocada, " +
+                "Fila: $filaTocada)")
+
+        //Asegurarse de que el toque fue dentro del tablero (0-14)
+        if(colTocada in 0..14 && filaTocada in 0..14)
+        {
+            //Avisar al listener (a MainActivity)
+            listener?.onCasillaTocada(colTocada, filaTocada)
+        }
+
+        return true //Devolver true para indicar que se manejó el toque
+    }
+
+    /*Devuelve la 'posicionGlobal' (1-76) que corresponde a una celda (col, fila) de la cuadrícula.
+     Devuelve -1 si no es una casilla jugable*/
+    fun obtenerPosicionGlobalDeCasilla(col: Int, fila: Int): Int
+    {
+        val parTocado = (col to fila)
+
+        //Buscar en el camino principal (1-52)
+        var indice = CAMINO_PRINCIPAL.indexOf(parTocado)
+
+        if(indice != -1)
+            return indice + 1 //+1 porque el índice 0 es la posición 1
+
+        //Buscar en Meta Roja (Pos 53-58)
+        indice = META_ROJA.indexOf(parTocado)
+        if(indice != -1)
+            return indice + 53 //Base 53 (53-53=0)
+
+        //Buscar en Meta Verde (Pos 59-64)
+        indice = META_VERDE.indexOf(parTocado)
+        if(indice != -1)
+            return indice + 59 //Base 59 (59-59=0)
+
+        //Buscar en Meta Amarilla (Pos 65-70)
+        indice = META_AMARILLA.indexOf(parTocado)
+        if(indice != -1)
+            return indice + 65 //Base 65 (65-65=0)
+
+        //Buscar en Meta Azul (Pos 71-76)
+        indice = META_AZUL.indexOf(parTocado)
+        if(indice != -1)
+            return indice + 71 //Base 71 (71-71=0)
+
+        //Si no es una casilla jugable se retorna -1
+        return -1
+    }
+
+    /*Devuelve el color de la base que corresponde a una celda (col, fila) de la cuadrícula.
+     Devuelve null si no es una casilla de base*/
+    fun obtenerColorBaseTocada(col: Int, fila: Int): ColorJugador?
+    {
+        //Base Roja (Superior Izquierda: 0-5, 0-5)
+        if(col in 0..5 && fila in 0..5) {
+            return ColorJugador.ROJO
+        }
+        //Base Verde (Superior Derecha: 9-14, 0-5)
+        if(col in 9..14 && fila in 0..5) {
+            return ColorJugador.VERDE
+        }
+        //Base Azul (Inferior Izquierda: 0-5, 9-14)
+        if(col in 0..5 && fila in 9..14) {
+            return ColorJugador.AZUL
+        }
+        //Base Amarilla (Inferior Derecha: 9-14, 9-14)
+        if(col in 9..14 && fila in 9..14) {
+            return ColorJugador.AMARILLO
+        }
+
+        //No se tocó ninguna base
+        return null
+    }
+
+    /*Busca todas las fichas (de cualquier jugador) que están
+     en una posición global específica (fuera de la base)*/
+    private fun obtenerPilaEnCasilla(posicionGlobal: Int): List<Ficha>
+    {
+        val pila = mutableListOf<Ficha>()
+        //El orden de listaJugadores (Rojo, Verde, etc.) es importante
+        //para que el 'indexOf' sea consistente en cada redibujado
+        for (jugador in listaJugadores)
+        {
+            for (ficha in jugador.fichas)
+            {
+                //Comprobamos solo fichas EN_JUEGO o EN_META
+                if(ficha.posicionGlobal == posicionGlobal && (ficha.estado == EstadoFicha.EN_JUEGO
+                        || ficha.estado == EstadoFicha.EN_META))
+                    pila.add(ficha)
+            }
+        }
+        return pila
     }
 }
