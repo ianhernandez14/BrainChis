@@ -27,6 +27,7 @@ class Tablero: View
     private val pBorde = Paint(Paint.ANTI_ALIAS_FLAG)
     private val pRelleno = Paint(Paint.ANTI_ALIAS_FLAG)
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val pResaltado = Paint(Paint.ANTI_ALIAS_FLAG)
 
     //Variables para almacenar los colores cargados
     private var colorBaseRojo: Int = 0
@@ -35,6 +36,7 @@ class Tablero: View
     private var colorBaseAmarillo: Int = 0
     private var colorBaseGris: Int = 0
     private var listaJugadores: List<Jugador> = emptyList()
+    private var fichasMovibles: List<Ficha> = emptyList()
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -49,6 +51,10 @@ class Tablero: View
         gridPaint.style = Paint.Style.STROKE
         gridPaint.color = Color.DKGRAY
         gridPaint.strokeWidth = 2f
+
+        pResaltado.style = Paint.Style.STROKE
+        pResaltado.color = Color.MAGENTA
+        pResaltado.strokeWidth = 8f
 
         try{
             colorBaseRojo = ContextCompat.getColor(context, R.color.rojo)
@@ -452,7 +458,7 @@ class Tablero: View
     }
 
     private fun dibujarFichaIndividual(canvas: Canvas, casilla: Float, gridX: Float, gridY: Float,
-        color: ColorJugador, factorEscala: Float)
+        color: ColorJugador, factorEscala: Float, esMovible: Boolean)
     {
         //Determinar la imagen según el color
         val nombreRecurso = when(color)
@@ -491,13 +497,20 @@ class Tablero: View
 
         imagen.setBounds(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
         imagen.draw(canvas)
+
+        if(esMovible)
+        {
+            //Dibujar un círculo de resaltado alrededor de la ficha
+            val radioResaltado = (altoFichaReal / 2f) * 1.1f
+            canvas.drawCircle(cX, cY, radioResaltado, pResaltado)
+        }
     }
 
     private fun dibujarFichas(canvas: Canvas)
     {
         val casilla = measuredWidth / 15f
 
-        for (jugador in listaJugadores)
+        for(jugador in listaJugadores)
         {
             for (ficha in jugador.fichas)
             {
@@ -621,8 +634,8 @@ class Tablero: View
                                 //Calculamos el ángulo para esta ficha
                                 val angulo = 2 * PI * indice / total
 
-                                // Calculamos el desplazamiento (offsetX, offsetY) usando trigonometría
-                                // cos(angulo) para X, sin(angulo) para Y
+                                //Calculamos el desplazamiento (offsetX, offsetY) usando trigonometría
+                                //cos(angulo) para X, sin(angulo) para Y
                                 offsetX = (radioCirculo * cos(angulo)).toFloat()
                                 offsetY = (radioCirculo * sin(angulo)).toFloat()
                             }
@@ -630,11 +643,13 @@ class Tablero: View
                     }
                 }
 
+                val esMovible = fichasMovibles.contains(ficha)
+
                 if(gridX != -1f)
                 {
                     //Aplicamos el desplazamiento (offsetX/offsetY) al centro
                     dibujarFichaIndividual(canvas, casilla, gridX + offsetX, gridY + offsetY,
-                        ficha.color, factorEscalaDinamico)
+                        ficha.color, factorEscalaDinamico, esMovible)
                 }
             }
         }
@@ -746,5 +761,11 @@ class Tablero: View
             }
         }
         return pila
+    }
+
+    fun actualizarFichasMovibles(fichas: List<Ficha>)
+    {
+        this.fichasMovibles = fichas
+        invalidate()
     }
 }

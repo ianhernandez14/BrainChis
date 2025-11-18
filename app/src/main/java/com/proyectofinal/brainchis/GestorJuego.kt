@@ -226,7 +226,9 @@ class GestorJuego
             }
         }
 
-        Log.i(TAG, "ESTADO FINAL FICHA: Estado ${ficha.estado}, PosGlobal ${ficha.posicionGlobal}")
+        Log.i(TAG, "ESTADO FINAL FICHA: Estado ${ficha.estado}, " +
+                "PosGlobal ${ficha.posicionGlobal}")
+
 
         //--- Comprobación de victoria ---
         if(comprobarVictoria(jugadorActual))
@@ -235,36 +237,43 @@ class GestorJuego
             return
         }
 
-        //--- Gestión del turno ---
+        //--- Cálculo de turnos extra por meta o kill ---
+        //Se considera que llegó a la meta final si su estado es EN_META y su posición coincide
+        // con el final
+        val llegoAMetaFinal = ficha.estado == EstadoFicha.EN_META &&
+                ficha.posicionGlobal == baseMeta[ficha.color]!! + LONGITUD_META
 
         if(seHizoKill)
         {
-            //Si hubo kill, se reinician los seises y se guarda 1 turno extra
-            seisesConsecutivos = 0
             turnosExtraPorKill++
-            Log.d(TAG, "¡Kill! Se añade 1 turno extra. Total: $turnosExtraPorKill")
+            seisesConsecutivos = 0 //Reiniciar contador de seises al matar
+            Log.d(TAG, "¡Kill realizado! Se añade 1 turno extra. Total: $turnosExtraPorKill")
+        }
+        else if(llegoAMetaFinal)
+        {
+            turnosExtraPorKill++
+            seisesConsecutivos = 0 //Reiniciar contador al llegar a meta
+            Log.d(TAG, "Meta alcanzada. Se añade 1 turno extra. Total: $turnosExtraPorKill")
         }
 
         if(resultadoDado == 6)
         {
-            //Si sacó 6, siempre tiene otro turno (no se pasa el turno)
+            //Si sacó 6, siempre tiene otro turno (esto es independiente del kill)
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
-            Log.d(TAG, "¡Seis! Tiene otro turno.")
-
         }
         else if(turnosExtraPorKill > 0)
         {
-            //Si no sacó 6, pero tiene un turno extra por un kill anterior,
-            //se consume ese turno y se le da otra oportunidad.
-            turnosExtraPorKill-- //Se consume el turno extra
-            seisesConsecutivos = 0 //Un turno por kill "limpia" los seises
+            //Si no sacó 6, pero tiene un turno extra acumulado (por kill o meta)
+            turnosExtraPorKill-- //Se consume un turno extra
+            seisesConsecutivos = 0 //El turno extra es 'limpio'
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
-            //Log.d(TAG, "Turno extra por kill consumido. Quedan: $turnosExtraPorKill")
-
+            Log.d(TAG, "Usando turno extra por bonificación. Quedan: $turnosExtraPorKill")
         }
         else
+        {
             //Si no sacó 6 y no hay turnos extra, se pasa el turno.
             pasarTurno()
+        }
     }
 
     //--- LÓGICA DE MOVIMIENTO ---
@@ -359,6 +368,59 @@ class GestorJuego
             //Fallback por si acaso
             else -> false
         }
+    }
+
+    /*Elige y ejecuta un movimiento automático basado en el dado.
+      Prioriza mover fichas que no estén en casillas seguras.
+      Devuelve la ficha que se movió (o null si no se pudo)*/
+    fun realizarMovimientoAutomatico(resultadoDado: Int): Ficha?
+    {
+        if(estadoJuego != EstadoJuego.ESPERANDO_MOVIMIENTO)
+            return null
+
+        val movimientosPosibles = obtenerMovimientosPosibles(resultadoDado)
+
+        if(movimientosPosibles.isEmpty())
+            return null
+
+        //Prioridad 1: Fichas en juego y NO seguras
+        val fichasNoSeguras = movimientosPosibles.filter{
+            it.estado == EstadoFicha.EN_JUEGO && it.posicionGlobal !in casillasSeguras
+        }
+
+        if(fichasNoSeguras.isNotEmpty())
+        {
+            val fichaElegida = fichasNoSeguras.random()
+            moverFicha(fichaElegida, resultadoDado)
+            Log.i(TAG, "Movimiento automático (P1 No Segura): ${fichaElegida.color} " +
+                    "ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        //Prioridad 2: Fichas en Base (para salir) o en Meta (para avanzar)
+        val fichasBaseOMeta = movimientosPosibles.filter{
+            it.estado == EstadoFicha.EN_BASE || it.estado == EstadoFicha.EN_META
+        }
+
+        if(fichasBaseOMeta.isNotEmpty())
+        {
+            val fichaElegida = fichasBaseOMeta.random()
+            moverFicha(fichaElegida, resultadoDado)
+            Log.i(TAG, "Movimiento automático (P2 Base/Meta): ${fichaElegida.color} " +
+                    "ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        //Prioridad 3: Fichas en juego pero YA seguras (última opción)
+        if(movimientosPosibles.isNotEmpty()) {
+            val fichaElegida = movimientosPosibles.random()
+            moverFicha(fichaElegida, resultadoDado)
+            Log.i(TAG, "Movimiento automático (P3 Segura): ${fichaElegida.color} " +
+                    "ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        return null
     }
 
     //--- UTILIDADES DE TABLERO / TURNOS ---

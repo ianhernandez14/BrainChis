@@ -1,10 +1,12 @@
 package com.proyectofinal.brainchis
 
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -15,7 +17,6 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
     private lateinit var gestor: GestorJuego
     private lateinit var tableroView: Tablero
     private var ultimoResultadoDado: Int = 0
-
     private lateinit var dadoRojo: ImageView
     private lateinit var dadoVerde: ImageView
     private lateinit var dadoAzul: ImageView
@@ -24,9 +25,22 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
     private lateinit var powerupVerde: ImageView
     private lateinit var powerupAzul: ImageView
     private lateinit var powerupAmarillo: ImageView
+    private lateinit var textoTemporizador: TextView
 
     //Esta variable es nomás para filtrar los logs
     private val TAG = "ParchisDEBUG"
+
+    //Temporizador
+    private var temporizadorTurno: CountDownTimer? = null
+    private val TIEMPO_PARA_LANZAR_MS = 3000L //3 segundos
+    private val TIEMPO_PARA_MOVER_MS = 6000L  //6 segundos
+    private val TAG_TIMER = "ParchisTimer"
+
+    //Layout victoria
+    private lateinit var layoutVictoria: View
+    private lateinit var txtGanador: TextView
+    private lateinit var btnReiniciarVic: Button
+    private lateinit var btnMenuVic: Button
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -52,6 +66,19 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
         powerupVerde = findViewById(R.id.dado_powerup_verde)
         powerupAzul = findViewById(R.id.dado_powerup_azul)
         powerupAmarillo = findViewById(R.id.dado_powerup_amarillo)
+        textoTemporizador = findViewById(R.id.texto_temporizador)
+        layoutVictoria = findViewById(R.id.layoutVictoria)
+        txtGanador = findViewById(R.id.txtGanador)
+        btnReiniciarVic = findViewById(R.id.btnReiniciarVic)
+        btnMenuVic = findViewById(R.id.btnMenuVic)
+
+        btnReiniciarVic.setOnClickListener{
+            recreate() //Reiniciar la actividad
+        }
+
+        btnMenuVic.setOnClickListener{
+            finish() //Cerrar la actividad
+        }
 
         //Configurar la partida con 4 jugadores
         val colores = listOf(ColorJugador.ROJO, ColorJugador.VERDE, ColorJugador.AMARILLO,
@@ -77,7 +104,6 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
 //            fichaRojaPrueba = gestor.jugadores.find { it.color == ColorJugador.ROJO }?.fichas?.get(3)
 //            fichaRojaPrueba?.estado = EstadoFicha.EN_META
 //            fichaRojaPrueba?.posicionGlobal = 57
-//
 //
 //            //VERDE: justo antes de su meta (pos 12)
 //            val fichaVerdePrueba = gestor.jugadores.find { it.color == ColorJugador.VERDE }?.fichas?.get(0)
@@ -121,6 +147,8 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
 
     private fun prepararSiguienteTurno()
     {
+        tableroView.actualizarFichasMovibles(emptyList())
+
         //Ocultar todos los dados
         dadoRojo.visibility = View.INVISIBLE
         dadoVerde.visibility = View.INVISIBLE
@@ -152,10 +180,14 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
         dadoActivo.setOnClickListener{
             lanzarDado()
         }
+
+        iniciarTemporizador(esParaLanzar = true)
     }
 
     private fun lanzarDado()
     {
+        cancelarTemporizador()
+
         //Solo lanzar si estamos esperando
         if(gestor.estadoJuego != EstadoJuego.ESPERANDO_LANZAMIENTO)
             return
@@ -187,6 +219,14 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
             tableroView.actualizarEstadoJuego(gestor.jugadores)
             prepararSiguienteTurno()
         }
+        else{
+            //Mostramos qué fichas se pueden mover
+            val movimientos = gestor.obtenerMovimientosPosibles(ultimoResultadoDado)
+            tableroView.actualizarFichasMovibles(movimientos)
+
+            //El estado cambió a ESPERANDO_MOVIMIENTO
+            iniciarTemporizador(esParaLanzar = false) //Iniciar timer de 6 seg
+        }
     }
 
     override fun onCasillaTocada(col: Int, fila: Int)
@@ -194,6 +234,9 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
         //Validar que estemos esperando un movimiento
         if(gestor.estadoJuego != EstadoJuego.ESPERANDO_MOVIMIENTO)
             return //No es momento de mover
+
+        //El usuario actuó, cancelar el timer de 6 seg
+        cancelarTemporizador()
 
         //Obtener la lista de fichas que SÍ podemos mover
         val movimientosPosibles = gestor.obtenerMovimientosPosibles(ultimoResultadoDado)
@@ -214,7 +257,8 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
             }
 
             if(fichaParaMover != null)
-                Log.i(TAG, "FICHA SELECCIONADA: (En Camino/Meta) ${fichaParaMover.color} ID ${fichaParaMover.id} (En Pos ${fichaParaMover.posicionGlobal})")
+                Log.i(TAG, "FICHA SELECCIONADA: (En Camino/Meta) ${fichaParaMover.color} " +
+                        "ID ${fichaParaMover.id} (En Pos ${fichaParaMover.posicionGlobal})")
 
         }
         else{
@@ -233,7 +277,8 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
                     fichaParaMover = movimientosPosibles.find{ it.estado == EstadoFicha.EN_BASE }
 
                     if(fichaParaMover != null)
-                        Log.i(TAG, "FICHA SELECCIONADA: (Desde Base) ${fichaParaMover.color} ID ${fichaParaMover.id}")
+                        Log.i(TAG, "FICHA SELECCIONADA: (Desde Base) " +
+                                "${fichaParaMover.color} ID ${fichaParaMover.id}")
                 }
             }
         }
@@ -245,19 +290,136 @@ class MainActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
 
             //Actualizar lo visual
             tableroView.actualizarEstadoJuego(gestor.jugadores)
+            tableroView.actualizarFichasMovibles(emptyList())
 
             //Comprobar si el juego terminó
             if(gestor.estadoJuego == EstadoJuego.JUEGO_TERMINADO)
-            {
-                //TODO: Mostrar pantalla de victoria
-                Log.d(TAG, "¡JUEGO TERMINADO! Ha ganado ${gestor.jugadorActual.color}")
-            }
+                mostrarVictoria(gestor.jugadorActual.color)
             else if(gestor.estadoJuego == EstadoJuego.ESPERANDO_LANZAMIENTO)
-            {
                 //Si el gestor está esperando un nuevo lanzamiento (ej. sacó 6 o hizo una kill)
                 prepararSiguienteTurno()
+        }
+        else{
+            //El usuario tocó una casilla inválida
+            Log.w(TAG, "Toque inválido. El jugador debe volver a intentarlo.")
+            //Reiniciamos el timer de 6 seg porque el toque fue inválido
+            iniciarTemporizador(esParaLanzar = false)
+        }
+    }
+
+    private fun cancelarTemporizador()
+    {
+        temporizadorTurno?.cancel()
+        Log.d(TAG_TIMER, "Temporizador cancelado por accion del usuario")
+
+        //Ocultar el reloj
+        textoTemporizador.visibility = View.INVISIBLE
+    }
+
+    //Inicia un nuevo temporizador (para lanzar o para mover)
+    private fun iniciarTemporizador(esParaLanzar: Boolean)
+    {
+        cancelarTemporizador() //Cancela el anterior y oculta el reloj
+
+        val duracion = if (esParaLanzar) TIEMPO_PARA_LANZAR_MS else TIEMPO_PARA_MOVER_MS
+
+        //--- Mostrar el reloj ---
+        //Mostrar el tiempo inicial
+        textoTemporizador.text = (duracion / 1000).toString()
+        textoTemporizador.visibility = View.VISIBLE
+
+        temporizadorTurno = object : CountDownTimer(duracion, 1000)
+        {
+            override fun onTick(millisUntilFinished: Long)
+            {
+                //--- Actualizar el número ---
+                //Sumar 999ms para redondear hacia arriba
+                val segundosRestantes = (millisUntilFinished + 999) / 1000
+                textoTemporizador.text = segundosRestantes.toString()
+            }
+
+            override fun onFinish()
+            {
+                Log.i(TAG_TIMER, "Tiempo agotado. Acción automática")
+
+                //Ocultar el reloj
+                textoTemporizador.visibility = View.INVISIBLE
+
+                if (esParaLanzar)
+                    accionAutomaticaLanzar()
+                else
+                    accionAutomaticaMover()
+            }
+        }.start()
+    }
+
+    //Acción automática si se acaba el tiempo de lanzar
+    private fun accionAutomaticaLanzar()
+    {
+        if(gestor.estadoJuego == EstadoJuego.ESPERANDO_LANZAMIENTO)
+        {
+            Log.i(TAG_TIMER, "Lanzando dado automáticamente...")
+            //Simular el "clic" al dado
+            lanzarDado()
+        }
+    }
+
+    //Acción automática si se acaba el tiempo de mover
+    private fun accionAutomaticaMover()
+    {
+        if(gestor.estadoJuego == EstadoJuego.ESPERANDO_MOVIMIENTO)
+        {
+            Log.i(TAG_TIMER, "Moviendo ficha automáticamente...")
+
+            //Usamos la nueva función del GestorJuego
+            val fichaMovida = gestor.realizarMovimientoAutomatico(ultimoResultadoDado)
+
+            if(fichaMovida != null)
+            {
+                //Actualizar UI
+                tableroView.actualizarEstadoJuego(gestor.jugadores)
+                tableroView.actualizarFichasMovibles(emptyList())
+
+                //Gestionar el siguiente turno (que no se note que la lógica es copiada de
+                //onCasillaTocada jaja)
+                if(gestor.estadoJuego == EstadoJuego.JUEGO_TERMINADO)
+                {
+                    cancelarTemporizador() //Parar todos los timers
+                    mostrarVictoria(gestor.jugadorActual.color)
+                }
+                else if(gestor.estadoJuego == EstadoJuego.ESPERANDO_LANZAMIENTO)
+                {
+                    //Si sacó 6, mató, o usó turno extra
+                    prepararSiguienteTurno() //Esto iniciará el timer de 3 seg
+                }
             }
         }
     }
 
+    private fun mostrarVictoria(ganador: ColorJugador)
+    {
+        cancelarTemporizador() //Detener el reloj
+
+        val texto = "HA GANADO EL JUGADOR ${ganador.name}"
+        txtGanador.text = texto
+
+        //Cambiar color del texto según el ganador
+        val colorRes = when(ganador)
+        {
+            ColorJugador.ROJO -> androidx.core.content.ContextCompat.getColor(this,
+                R.color.rojo)
+            ColorJugador.VERDE -> androidx.core.content.ContextCompat.getColor(this,
+                R.color.verde)
+            ColorJugador.AZUL -> androidx.core.content.ContextCompat.getColor(this,
+                R.color.azul)
+            ColorJugador.AMARILLO -> androidx.core.content.ContextCompat.getColor(this,
+                R.color.amarillo)
+        }
+        txtGanador.setTextColor(colorRes)
+
+        layoutVictoria.visibility = View.VISIBLE
+
+        //Traer al frente por si acaso
+        layoutVictoria.bringToFront()
+    }
 }

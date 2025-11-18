@@ -15,6 +15,21 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <TextView
+        android:id="@+id/texto_temporizador"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/fondo_circular_reloj"
+        android:gravity="center"
+        android:text="3"
+        android:textColor="@android:color/white"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Dado rojo (jugador superior izquierdo) -->
     <ImageView
@@ -107,5 +122,7 @@
         app:layout_constraintTop_toBottomOf="@id/tablero"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="18dp"/>
+
+    <include layout="@layout/layout_victoria"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
