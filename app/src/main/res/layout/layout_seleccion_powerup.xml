@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutSeleccionPowerUp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#B3000000"
+    android:visibility="gone"
+    android:elevation="25dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="340dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        card_view:cardCornerRadius="20dp"
+        card_view:cardElevation="16dp"
+        card_view:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SELECCIONA UN POWER-UP"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#2D3748"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/txtUsosRestantes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Usos restantes: 5"
+                android:textSize="16sp"
+                android:textColor="#E53E3E"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="3"
+                android:alignmentMode="alignMargins"
+                android:columnOrderPreserved="false">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPowerPares"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="Solo Pares"
+                    android:textColor="#2D3748"
+                    app:strokeColor="#4A5568"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPowerImpares"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="Solo Impares"
+                    android:textColor="#2D3748"
+                    app:strokeColor="#4A5568"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPowerAltos"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="Altos (4-6)"
+                    android:textColor="#2D3748"
+                    app:strokeColor="#4A5568"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPowerBajos"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="Bajos (1-3)"
+                    android:textColor="#2D3748"
+                    app:strokeColor="#4A5568"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPowerSalida"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="2"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="Salida Maestra (Sacar 6)"
+                    android:backgroundTint="#ED8936"
+                    android:textColor="#FFFFFF"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPowerEscudo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="2"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="Escudo Temporal"
+                    android:backgroundTint="#4299E1"
+                    android:textColor="#FFFFFF"/>
+
+            </GridLayout>
+
+            <Button
+                android:id="@+id/btnCancelarPower"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cancelar"
+                android:background="#00000000"
+                android:textColor="#718096"
+                android:layout_marginTop="16dp"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

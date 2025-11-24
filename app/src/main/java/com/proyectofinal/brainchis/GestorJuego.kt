@@ -14,7 +14,12 @@ class GestorJuego
 
     private var indiceTurnoActual: Int = 0
     private var seisesConsecutivos: Int = 0
-    private var turnosExtraPorKill: Int = 0
+    var turnosExtraPorKill: Int = 0
+        private set
+
+    //Para saber si el último movimiento causó una kill
+    var huboKill: Boolean = false
+        private set
 
     var estadoJuego: EstadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
 
@@ -66,17 +71,23 @@ class GestorJuego
         ColorJugador.AZUL to 70  //70 + 6 = 76
     )
 
-    //Inicia una nueva partida con los colores seleccionados
-    fun iniciarJuego(coloresJugadores: List<ColorJugador>)
+    //Función para activar el powerup (se llama desde la UI tras ganar la trivia)
+    fun activarPowerUp(jugador: Jugador, tipo: TipoPowerUp): Boolean
     {
-        jugadores = coloresJugadores.map{ color -> Jugador(color) }
-        indiceTurnoActual = 0
-        seisesConsecutivos = 0
-        estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
+        if(jugador.usosPowerUpRestantes > 0)
+        {
+            jugador.powerUpActivo = tipo
+            jugador.usosPowerUpRestantes--
+            Log.i(TAG, "PowerUp ${tipo.name} activado para el jugador ${jugador.color}")
+            return true
+        }
+
+        return false
     }
 
     //Lanza el dado y decide si se espera movimiento o se pasa turno
-    fun lanzarDado(): Int
+    // MODIFICADO: Acepta valorForzado para el modo Online
+    fun lanzarDado(valorForzado: Int? = null): Int
     {
         if(estadoJuego != EstadoJuego.ESPERANDO_LANZAMIENTO)
             return -1
@@ -84,18 +95,42 @@ class GestorJuego
         val jugador = jugadorActual
         var resultado: Int
 
-        //--- LÓGICA DE SUERTE ---
-        //Cuando un jugador tiene todas sus fichas en la base y lleva 3 o más turnos sin sacar un 6,
-        //se le da un boost de suerte para poder sacar el 6
-        if(jugador.tirosSinSeis >= 3 && jugador.fichas.all { it.estado == EstadoFicha.EN_BASE })
+        // --- LÓGICA DE VALOR FORZADO (NUEVO) ---
+        if (valorForzado != null) {
+            resultado = valorForzado
+            Log.d(TAG, "Dado forzado por red: $resultado")
+        }
+        else if(jugador.powerUpActivo != TipoPowerUp.NINGUNO)
         {
-            val tiroConSuerte = Random.nextInt(1, 7)
-            resultado = if(tiroConSuerte <= 3) 6 else tiroConSuerte
+            // --- LÓGICA DE POWER-UPS (Tu código original) ---
+            resultado = when(jugador.powerUpActivo)
+            {
+                TipoPowerUp.DADO_SOLO_PARES -> listOf(2, 4, 6).random()
+                TipoPowerUp.DADO_SOLO_IMPARES -> listOf(1, 3, 5).random()
+                TipoPowerUp.DADO_ALTOS -> Random.nextInt(4, 7)
+                TipoPowerUp.DADO_BAJOS -> Random.nextInt(1, 4)
+                TipoPowerUp.SALIDA_MAESTRA -> 6
+                else -> Random.nextInt(1, 7)
+            }
+            Log.d(TAG, "PowerUp usado: ${jugador.powerUpActivo} -> Resultado: $resultado")
+            jugador.powerUpActivo = TipoPowerUp.NINGUNO
         }
         else
-            resultado = Random.nextInt(1, 7)
+        {
+            // --- LÓGICA NORMAL/SUERTE (Tu código original mejorado) ---
+            val fichasActivas = jugador.fichas.filter{ it.estado != EstadoFicha.EN_META }
+            if(jugador.tirosSinSeis >= 3 && fichasActivas.isNotEmpty() &&
+                fichasActivas.all{ it.estado == EstadoFicha.EN_BASE })
+            {
+                val tiroConSuerte = Random.nextInt(1, 7)
+                resultado = if(tiroConSuerte <= 3) 6 else tiroConSuerte
+                Log.d(TAG, "Boost de suerte aplicado.")
+            }
+            else
+                resultado = Random.nextInt(1, 7)
+        }
 
-        //--- SEISES CONSECUTIVOS ---
+        // --- SEISES CONSECUTIVOS (Tu código original) ---
         if(resultado == 6)
         {
             seisesConsecutivos++
@@ -103,7 +138,6 @@ class GestorJuego
 
             if(seisesConsecutivos == 3)
             {
-                //3er seis es turno perdido
                 seisesConsecutivos = 0
                 turnosExtraPorKill = 0
                 pasarTurno()
@@ -115,17 +149,14 @@ class GestorJuego
             jugador.tirosSinSeis++
         }
 
-        //Comprobamos si hay al menos un movimiento posible
         val movimientosPosibles = obtenerMovimientosPosibles(resultado)
 
         if(movimientosPosibles.isEmpty())
         {
             if(resultado != 6)
-                //No puede mover y no sacó 6 entonces se pasa el turno
                 pasarTurno()
         }
         else
-            //Hay algo que mover
             estadoJuego = EstadoJuego.ESPERANDO_MOVIMIENTO
 
         return resultado
@@ -195,10 +226,14 @@ class GestorJuego
         if(estadoJuego != EstadoJuego.ESPERANDO_MOVIMIENTO)
             return
 
-        var seHizoKill = false
+        //Reiniciar la bandera al inicio del movimiento
+        huboKill = false
+
+        var seHizoKillLocal = false //Variable local temporal
 
         Log.d(TAG, "--- GestorJuego.moverFicha ---")
-        Log.i(TAG, "Moviendo Ficha: ${ficha.color} ID ${ficha.id}, Estado ${ficha.estado}, PosActual ${ficha.posicionGlobal}")
+        Log.i(TAG, "Moviendo Ficha: ${ficha.color} ID ${ficha.id}, " +
+                "Estado ${ficha.estado}, PosActual ${ficha.posicionGlobal}")
         Log.d(TAG, "Dado: $resultadoDado")
 
         when(ficha.estado)
@@ -210,14 +245,15 @@ class GestorJuego
                     val casillaSalida = posicionSalida[jugadorActual.color]!!
                     ficha.estado = EstadoFicha.EN_JUEGO
                     ficha.posicionGlobal = casillaSalida
-                    seHizoKill = resolverCasilla(casillaSalida, jugadorActual.color)
+                    seHizoKillLocal = resolverCasilla(casillaSalida,
+                        jugadorActual.color)
                 }
             }
 
             EstadoFicha.EN_JUEGO ->
             {
                 moverFichaEnJuego(ficha, resultadoDado).also{
-                    seHizoKill = it
+                    seHizoKillLocal = it
                 }
             }
 
@@ -229,6 +265,8 @@ class GestorJuego
         Log.i(TAG, "ESTADO FINAL FICHA: Estado ${ficha.estado}, " +
                 "PosGlobal ${ficha.posicionGlobal}")
 
+        //Guardar el resultado en la variable pública
+        huboKill = seHizoKillLocal
 
         //--- Comprobación de victoria ---
         if(comprobarVictoria(jugadorActual))
@@ -239,11 +277,11 @@ class GestorJuego
 
         //--- Cálculo de turnos extra por meta o kill ---
         //Se considera que llegó a la meta final si su estado es EN_META y su posición coincide
-        // con el final
+        //con el final
         val llegoAMetaFinal = ficha.estado == EstadoFicha.EN_META &&
                 ficha.posicionGlobal == baseMeta[ficha.color]!! + LONGITUD_META
 
-        if(seHizoKill)
+        if(huboKill)
         {
             turnosExtraPorKill++
             seisesConsecutivos = 0 //Reiniciar contador de seises al matar
@@ -256,23 +294,47 @@ class GestorJuego
             Log.d(TAG, "Meta alcanzada. Se añade 1 turno extra. Total: $turnosExtraPorKill")
         }
 
+        //--- GESTIÓN DEL SIGUIENTE TURNO ---
+
         if(resultadoDado == 6)
         {
-            //Si sacó 6, siempre tiene otro turno (esto es independiente del kill)
+            //Prioridad 1: Si sacó 6, siempre tiene otro turno (Regla base)
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
+            Log.d(TAG, "¡Seis! Tiene otro turno por regla base.")
         }
         else if(turnosExtraPorKill > 0)
         {
-            //Si no sacó 6, pero tiene un turno extra acumulado (por kill o meta)
+            //Prioridad 2: Bonificaciones acumuladas (kills/metas)
             turnosExtraPorKill-- //Se consume un turno extra
             seisesConsecutivos = 0 //El turno extra es 'limpio'
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
             Log.d(TAG, "Usando turno extra por bonificación. Quedan: $turnosExtraPorKill")
         }
+        else if(jugadorActual.powerUpActivo == TipoPowerUp.DOBLE_TURNO_ASEGURADO)
+        {
+            //Prioridad 3: Power-Up de Doble Turno
+            Log.i(TAG, "PowerUp DOBLE_TURNO_ASEGURADO activado. El jugador tira de nuevo.")
+
+            jugadorActual.powerUpActivo = TipoPowerUp.NINGUNO //Consumir el efecto
+            seisesConsecutivos = 0 //Reiniciar racha para evitar castigos injustos en el nuevo tiro
+            estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO //Darle otro tiro
+        }
         else
         {
-            //Si no sacó 6 y no hay turnos extra, se pasa el turno.
-            pasarTurno()
+            //No sacó 6, ni mató, ni llegó a meta.
+            //Verificar si cayó en casilla segura (Estrella) para ofrecer bonificación
+            if(casillasSeguras.contains(ficha.posicionGlobal) &&
+                ficha.estado == EstadoFicha.EN_JUEGO)
+            {
+                Log.i(TAG, "Ficha cayó en casilla segura. Ofreciendo bonificación...")
+                estadoJuego = EstadoJuego.ESPERANDO_DECISION_BONIFICACION
+                //No pasamos turno todavía. Esperamos la respuesta de la UI
+            }
+            else
+            {
+                //Turno normal, se pasa al siguiente
+                pasarTurno()
+            }
         }
     }
 
@@ -344,6 +406,10 @@ class GestorJuego
             if(nuevaPosicion <= finMeta)
                 ficha.posicionGlobal = nuevaPosicion
         }
+    }
+
+    fun esCasillaSegura(posicion: Int): Boolean{
+        return casillasSeguras.contains(posicion)
     }
 
     //Determina si una posición del camino principal está en el "sector" del color (para habilitar
@@ -423,6 +489,68 @@ class GestorJuego
         return null
     }
 
+    //Solo elige la mejor ficha para mover, pero no realiza el movimiento
+    fun seleccionarFichaIA(resultadoDado: Int): Ficha?
+    {
+        if(estadoJuego != EstadoJuego.ESPERANDO_MOVIMIENTO)
+            return null
+
+        val movimientosPosibles = obtenerMovimientosPosibles(resultadoDado)
+
+        if(movimientosPosibles.isEmpty())
+            return null
+
+        //--- PRIORIDAD 0 (NUEVA): SACAR DE BASE ---
+        //Si sacamos 6, tenemos fichas en base, y tenemos pocas fichas jugando (< 2),
+        //es OBLIGATORIO sacar ficha para no quedarnos sin opciones.
+        val fichasEnBase = movimientosPosibles.filter { it.estado == EstadoFicha.EN_BASE }
+
+        //Contamos cuántas fichas tiene este jugador activas en el tablero
+        val fichasActivas = jugadorActual.fichas.count { it.estado == EstadoFicha.EN_JUEGO }
+
+        if (fichasEnBase.isNotEmpty() && fichasActivas < 2) {
+            val fichaElegida = fichasEnBase.first()
+            Log.i(TAG, "IA Elige (P0 Salir de Base - Urgente): ${fichaElegida.color} ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        //Prioridad 1: Fichas en juego y NO seguras (Para huir o avanzar rápido)
+        val fichasNoSeguras = movimientosPosibles.filter{
+            it.estado == EstadoFicha.EN_JUEGO && it.posicionGlobal !in casillasSeguras
+        }
+
+        if(fichasNoSeguras.isNotEmpty())
+        {
+            //Opcional: Podrías priorizar la que esté más avanzada para acercarse a meta
+            val fichaElegida = fichasNoSeguras.random()
+            Log.i(TAG, "IA Elige (P1 No Segura): ${fichaElegida.color} ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        //Prioridad 2: Fichas en Meta (para avanzar hacia la victoria)
+        //Nota: Quitamos EN_BASE de aquí porque ya lo manejamos arriba con prioridad,
+        //pero si ya tiene muchas fichas fuera (>2), caerá aquí si no había 'No Seguras'.
+        val fichasMetaOBaseRestantes = movimientosPosibles.filter{
+            it.estado == EstadoFicha.EN_META || it.estado == EstadoFicha.EN_BASE
+        }
+
+        if(fichasMetaOBaseRestantes.isNotEmpty())
+        {
+            val fichaElegida = fichasMetaOBaseRestantes.random()
+            Log.i(TAG, "IA Elige (P2 Meta/Base Extra): ${fichaElegida.color} ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        //Prioridad 3: Fichas en juego pero YA seguras (última opción, están cómodas ahí)
+        if(movimientosPosibles.isNotEmpty()) {
+            val fichaElegida = movimientosPosibles.random()
+            Log.i(TAG, "IA Elige (P3 Segura): ${fichaElegida.color} ID ${fichaElegida.id}")
+            return fichaElegida
+        }
+
+        return null
+    }
+
     //--- UTILIDADES DE TABLERO / TURNOS ---
     private fun obtenerFichasEnCasilla(posicion: Int): List<Ficha>
     {
@@ -444,6 +572,18 @@ class GestorJuego
         seisesConsecutivos = 0
         indiceTurnoActual = (indiceTurnoActual + 1) % jugadores.size
         estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
+
+        //--- LÓGICA DE LIMPIEZA DE POWER-UPS ---
+        //Al iniciar el turno, verificamos si el jugador tenía un escudo activo
+        //Si sí, se lo quitamos porque el efecto "dura hasta tu próximo turno"
+        val nuevoJugador = jugadores[indiceTurnoActual]
+
+        if(nuevoJugador.powerUpActivo == TipoPowerUp.ESCUDO_TEMPORAL)
+        {
+            nuevoJugador.powerUpActivo = TipoPowerUp.NINGUNO
+            Log.i(TAG, "El escudo temporal de ${nuevoJugador.color} se ha " +
+                    "desactivado al iniciar su turno.")
+        }
     }
 
     //Revisa la casilla después de que una ficha aterriza.
@@ -455,8 +595,22 @@ class GestorJuego
             return false
 
         val fichasEnPila = obtenerFichasEnCasilla(posicion)
-        val fichasPropias = fichasEnPila.filter { it.color == colorJugadorActual }
-        val fichasOponentes = fichasEnPila.filter { it.color != colorJugadorActual }
+        val fichasPropias = fichasEnPila.filter{ it.color == colorJugadorActual }
+        val fichasOponentes = fichasEnPila.filter{
+            if(it.color == colorJugadorActual)
+                return@filter false
+
+            //Buscar al dueño de esa ficha enemiga
+            val duenoFicha = jugadores.find{ j -> j.color == it.color }
+
+            //Si tiene escudo activado, NO lo incluimos como "comible"
+            val esInmune = duenoFicha?.powerUpActivo == TipoPowerUp.ESCUDO_TEMPORAL
+
+            if(esInmune)
+                Log.d(TAG, "Jugador ${it.color} salvado por ESCUDO_TEMPORAL")
+
+            !esInmune //Solo devolvemos true si NO es inmune
+        }
 
         val hayKill1v1 = (fichasPropias.size == 1 && fichasOponentes.size == 1)
         val hayKillSuperioridad = (fichasPropias.size >= 2 && fichasOponentes.isNotEmpty())
@@ -485,5 +639,98 @@ class GestorJuego
         }
 
         return fichasEnMetaFinal == 4
+    }
+
+    //Se llama cuando el usuario decide sobre la casilla segura
+    //aceptaReto: true si aceptó y GANÓ la trivia. false si rechazó o perdió.
+    fun resolverBonificacionCasillaSegura(aceptoYgano: Boolean)
+    {
+        if(estadoJuego != EstadoJuego.ESPERANDO_DECISION_BONIFICACION)
+            return
+
+        if(aceptoYgano)
+        {
+            Log.i(TAG, "Reto de casilla segura superado. Turno extra concedido.")
+            //Concedemos turno extra
+            seisesConsecutivos = 0
+            estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
+        }
+        else
+        {
+            Log.i(TAG, "Reto rechazado o fallido. Se pasa turno.")
+            pasarTurno()
+        }
+    }
+
+    //Devuelve una lista con los IDs de las casillas que pisará la ficha paso a paso
+    fun calcularCamino(ficha: Ficha, pasos: Int): List<Int>
+    {
+        val camino = mutableListOf<Int>()
+        var posActualSimulada = ficha.posicionGlobal
+        var estadoSimulado = ficha.estado
+
+        //Simulamos paso a paso
+        for(i in 1..pasos)
+        {
+            //Lógica idéntica a moverFichaEnJuego, pero paso a paso
+            if(estadoSimulado == EstadoFicha.EN_BASE) {
+                //Si está en base y sale 6, salta directo a la salida
+                val salida = posicionSalida[ficha.color]!!
+                camino.add(salida)
+                posActualSimulada = salida
+                estadoSimulado = EstadoFicha.EN_JUEGO
+                //En base solo se mueve 1 vez (salir), el resto de pasos se pierden o no aplican igual
+                break
+            }
+            else if(estadoSimulado == EstadoFicha.EN_META) {
+                //Dentro de meta
+                val baseMetaColor = baseMeta[ficha.color]!!
+                val finMeta = baseMetaColor + LONGITUD_META
+                if(posActualSimulada < finMeta) {
+                    posActualSimulada++
+                    camino.add(posActualSimulada)
+                }
+            }
+            else {
+                //En Juego (Camino principal)
+                val entradaMeta = posicionEntradaMeta[ficha.color]!!
+
+                //¿Está justo en la entrada de su meta?
+                if(posActualSimulada == entradaMeta && esZonaDeMetaDeSuColor(ficha.color, posActualSimulada)) {
+                    //Entra a la meta
+                    val baseMetaColor = baseMeta[ficha.color]!!
+                    posActualSimulada = baseMetaColor + 1 //Primera casilla de meta
+                    estadoSimulado = EstadoFicha.EN_META
+                    camino.add(posActualSimulada)
+                }
+                else {
+                    //Avanza normal
+                    posActualSimulada++
+                    if(posActualSimulada > casillasTotalesTablero) {
+                        posActualSimulada = 1 //Vuelta al tablero
+                    }
+                    camino.add(posActualSimulada)
+                }
+            }
+        }
+        return camino
+    }
+    fun iniciarJuegoConJugadores(listaJugadoresPreconfigurada: List<Jugador>)
+    {
+        jugadores = listaJugadoresPreconfigurada
+        indiceTurnoActual = 0
+        seisesConsecutivos = 0
+        estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
+    }
+
+    //Devuelve true solo si la ficha está en la última casilla de la meta
+    fun esPosicionFinalDeMeta(ficha: Ficha): Boolean
+    {
+        if (ficha.estado != EstadoFicha.EN_META) return false
+
+        val base = baseMeta[ficha.color]!!
+        val finMeta = base + LONGITUD_META //Ej: Rojo 52 + 6 = 58
+
+        return ficha.posicionGlobal == finMeta
     }
 }

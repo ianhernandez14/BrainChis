@@ -8,7 +8,8 @@
     android:layout_height="match_parent"
     android:background="#80000000"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:visibility="gone">
 
     <!-- Contenedor principal centrado -->
     <androidx.cardview.widget.CardView
@@ -41,6 +42,18 @@
             android:letterSpacing="0.01"
             android:lineSpacingExtra="4dp"
             android:layout_marginVertical="10dp"/>
+
+        <TextView
+            android:id="@+id/txtFeedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="¡CORRECTO!"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#48BB78"
+            android:visibility="gone"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"/>
 
         <!-- Contenedor de opciones (Grid 2x2) -->
         <GridLayout

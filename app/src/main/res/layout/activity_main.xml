@@ -32,6 +32,25 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Tarjeta de botones principales -->
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAyudaMenu"
+        android:layout_width="60dp"
+        android:layout_height="50dp"
+        android:elevation="6dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:text="?"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:backgroundTint="#4299E1"
+        app:cornerRadius="25dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cardBotones"
         android:layout_width="match_parent"

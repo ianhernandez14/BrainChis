@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -21,7 +22,7 @@ class Tablero: View
         fun onCasillaTocada(col: Int, fila: Int)
     }
 
-    lateinit var onCasillaTocadaListener: MainActivity
+    lateinit var onCasillaTocadaListener: JuegoActivity
     private var listener: OnCasillaTocadaListener? = null
 
     private val pBorde = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -37,6 +38,8 @@ class Tablero: View
     private var colorBaseGris: Int = 0
     private var listaJugadores: List<Jugador> = emptyList()
     private var fichasMovibles: List<Ficha> = emptyList()
+
+    private var drawableAura: Drawable? = null
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -62,6 +65,7 @@ class Tablero: View
             colorBaseAzul = ContextCompat.getColor(context, R.color.azul)
             colorBaseAmarillo = ContextCompat.getColor(context, R.color.amarillo)
             colorBaseGris = ContextCompat.getColor(context, R.color.gris)
+            drawableAura = ContextCompat.getDrawable(context, R.drawable.aura_inmunidad)
         }catch (e: Exception){
             e.printStackTrace()
         }
@@ -458,7 +462,7 @@ class Tablero: View
     }
 
     private fun dibujarFichaIndividual(canvas: Canvas, casilla: Float, gridX: Float, gridY: Float,
-        color: ColorJugador, factorEscala: Float, esMovible: Boolean)
+       color: ColorJugador, factorEscala: Float, esMovible: Boolean, tieneInmunidad: Boolean)
     {
         //Determinar la imagen según el color
         val nombreRecurso = when(color)
@@ -469,14 +473,12 @@ class Tablero: View
             ColorJugador.AMARILLO -> "ficha_amarilla"
         }
 
-        val resId = resources.getIdentifier(nombreRecurso, "drawable",
-            context.packageName)
+        val resId = resources.getIdentifier(nombreRecurso, "drawable", context.packageName)
         val imagen = ContextCompat.getDrawable(context, resId) ?: return
 
         //--- Lógica de escalado ---
         val proporcionOriginal = 225f / 375f //ancho / alto
 
-        //Usamos el tamaño de la casilla como base
         val anchoFichaBase = if(casilla / casilla < proporcionOriginal)
             casilla
         else
@@ -489,6 +491,24 @@ class Tablero: View
         //Calcular centro
         val cX = gridX * casilla
         val cY = gridY * casilla
+
+        //--- DIBUJAR AURA DE INMUNIDAD (NUEVO) ---
+        //Lo dibujamos ANTES de la ficha para que quede detrás
+        if(tieneInmunidad && drawableAura != null) {
+            //Hacemos el aura un 40% más grande que la ficha
+            val escalaAura = 1.4f
+            val anchoAura = anchoFichaReal * escalaAura
+            val altoAura = altoFichaReal * escalaAura //Asumiendo aura circular o proporcional
+
+            //Centramos el aura en cX, cY
+            val leftA = cX - anchoAura / 2
+            val topA = cY - altoAura / 2
+            val rightA = cX + anchoAura / 2
+            val bottomA = cY + altoAura / 2
+
+            drawableAura?.setBounds(leftA.toInt(), topA.toInt(), rightA.toInt(), bottomA.toInt())
+            drawableAura?.draw(canvas)
+        }
 
         val left = cX - anchoFichaReal / 2
         val top = cY - altoFichaReal / 2
@@ -512,7 +532,9 @@ class Tablero: View
 
         for(jugador in listaJugadores)
         {
-            for (ficha in jugador.fichas)
+            val esJugadorInmune = jugador.powerUpActivo == TipoPowerUp.ESCUDO_TEMPORAL
+
+            for(ficha in jugador.fichas)
             {
                 var gridX = -1f
                 var gridY = -1f
@@ -649,7 +671,7 @@ class Tablero: View
                 {
                     //Aplicamos el desplazamiento (offsetX/offsetY) al centro
                     dibujarFichaIndividual(canvas, casilla, gridX + offsetX, gridY + offsetY,
-                        ficha.color, factorEscalaDinamico, esMovible)
+                        ficha.color, factorEscalaDinamico, esMovible, esJugadorInmune)
                 }
             }
         }
