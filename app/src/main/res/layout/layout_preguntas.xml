@@ -13,14 +13,14 @@
 
     <!-- Contenedor principal centrado -->
     <androidx.cardview.widget.CardView
-    android:id="@+id/cardPregunta"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:layout_gravity="bottom"
-    card_view:cardCornerRadius="20dp"
-    card_view:cardElevation="6dp"
-    card_view:cardBackgroundColor="#FFFFFF">
+        android:id="@+id/cardPregunta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_gravity="bottom"
+        card_view:cardCornerRadius="20dp"
+        card_view:cardElevation="6dp"
+        card_view:cardBackgroundColor="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,6 +28,17 @@
         android:orientation="vertical"
         android:padding="15dp"
         android:gravity="center">
+
+        <TextView
+            android:id="@+id/txtCategoria"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CATEGORÍA"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#718096"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
 
         <!-- Texto de la pregunta -->
         <TextView

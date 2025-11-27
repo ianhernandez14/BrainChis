@@ -18,11 +18,11 @@ class PuntajeActivity : AppCompatActivity()
             finish()
         }
 
-        // Configurar RecyclerView
+        //Configurar RecyclerView
         val recycler = findViewById<RecyclerView>(R.id.recyclerPuntajes)
         recycler.layoutManager = LinearLayoutManager(this)
 
-        // Cargar datos
+        //Cargar datos
         val lista = GestorPuntajes.obtenerPuntajes(this)
         recycler.adapter = PuntajeAdapter(lista)
     }

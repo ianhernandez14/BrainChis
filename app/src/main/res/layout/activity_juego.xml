@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/patron_fondo"
-    android:id="@+id/main">
+    android:id="@+id/main"
+    android:keepScreenOn="true">
 
     <com.proyectofinal.brainchis.Tablero
         android:id="@+id/tablero"

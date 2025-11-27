@@ -71,22 +71,27 @@ class GestorJuego
         ColorJugador.AZUL to 70  //70 + 6 = 76
     )
 
+    private var ultimoValorDado: Int = 0
+
     //Función para activar el powerup (se llama desde la UI tras ganar la trivia)
-    fun activarPowerUp(jugador: Jugador, tipo: TipoPowerUp): Boolean
+    //Modificada para buscar por color, más seguro
+    fun activarPowerUp(color: ColorJugador, tipo: TipoPowerUp): Boolean
     {
+        val jugador = jugadores.find { it.color == color } ?: return false
+
         if(jugador.usosPowerUpRestantes > 0)
         {
             jugador.powerUpActivo = tipo
             jugador.usosPowerUpRestantes--
-            Log.i(TAG, "PowerUp ${tipo.name} activado para el jugador ${jugador.color}")
+            Log.i(TAG, "PowerUp ${tipo.name} activado para ${jugador.color}")
             return true
         }
-
         return false
     }
 
     //Lanza el dado y decide si se espera movimiento o se pasa turno
-    // MODIFICADO: Acepta valorForzado para el modo Online
+    //MODIFICADO: Acepta valorForzado para el modo Online
+    //Lanza el dado y decide si se espera movimiento o se pasa turno
     fun lanzarDado(valorForzado: Int? = null): Int
     {
         if(estadoJuego != EstadoJuego.ESPERANDO_LANZAMIENTO)
@@ -95,14 +100,25 @@ class GestorJuego
         val jugador = jugadorActual
         var resultado: Int
 
-        // --- LÓGICA DE VALOR FORZADO (NUEVO) ---
+        //--- LÓGICA DE VALOR FORZADO (ONLINE) ---
         if (valorForzado != null) {
             resultado = valorForzado
             Log.d(TAG, "Dado forzado por red: $resultado")
+
+            //--- CORRECCIÓN: CONSUMIR POWER-UP SI EXISTÍA ---
+            //Aunque el valor venga de la red, debemos limpiar el estado local
+            //para que el letrero desaparezca en la pantalla del rival.
+            if (jugador.powerUpActivo != TipoPowerUp.NINGUNO) {
+                //(Opcional: Verificar si el tipo de powerup se consume al tirar,
+                //pero en tu lógica actual todos se consumen aquí).
+                jugador.powerUpActivo = TipoPowerUp.NINGUNO
+                Log.d(TAG, "PowerUp remoto consumido/limpiado localmente.")
+            }
+            //------------------------------------------------
         }
         else if(jugador.powerUpActivo != TipoPowerUp.NINGUNO)
         {
-            // --- LÓGICA DE POWER-UPS (Tu código original) ---
+            //--- LÓGICA DE POWER-UPS (LOCAL) ---
             resultado = when(jugador.powerUpActivo)
             {
                 TipoPowerUp.DADO_SOLO_PARES -> listOf(2, 4, 6).random()
@@ -113,11 +129,11 @@ class GestorJuego
                 else -> Random.nextInt(1, 7)
             }
             Log.d(TAG, "PowerUp usado: ${jugador.powerUpActivo} -> Resultado: $resultado")
-            jugador.powerUpActivo = TipoPowerUp.NINGUNO
+            jugador.powerUpActivo = TipoPowerUp.NINGUNO //Se consume aquí
         }
         else
         {
-            // --- LÓGICA NORMAL/SUERTE (Tu código original mejorado) ---
+            //--- LÓGICA NORMAL/SUERTE ---
             val fichasActivas = jugador.fichas.filter{ it.estado != EstadoFicha.EN_META }
             if(jugador.tirosSinSeis >= 3 && fichasActivas.isNotEmpty() &&
                 fichasActivas.all{ it.estado == EstadoFicha.EN_BASE })
@@ -130,7 +146,9 @@ class GestorJuego
                 resultado = Random.nextInt(1, 7)
         }
 
-        // --- SEISES CONSECUTIVOS (Tu código original) ---
+        ultimoValorDado = resultado
+
+        //--- SEISES CONSECUTIVOS ---
         if(resultado == 6)
         {
             seisesConsecutivos++
@@ -231,11 +249,15 @@ class GestorJuego
 
         var seHizoKillLocal = false //Variable local temporal
 
+        //--- 1. GUARDAR ESTADO PREVIO ---
+        val estabaEnBase = (ficha.estado == EstadoFicha.EN_BASE)
+
         Log.d(TAG, "--- GestorJuego.moverFicha ---")
         Log.i(TAG, "Moviendo Ficha: ${ficha.color} ID ${ficha.id}, " +
                 "Estado ${ficha.estado}, PosActual ${ficha.posicionGlobal}")
         Log.d(TAG, "Dado: $resultadoDado")
 
+        //1. EJECUTAR MOVIMIENTO SEGÚN ESTADO
         when(ficha.estado)
         {
             EstadoFicha.EN_BASE ->
@@ -245,8 +267,7 @@ class GestorJuego
                     val casillaSalida = posicionSalida[jugadorActual.color]!!
                     ficha.estado = EstadoFicha.EN_JUEGO
                     ficha.posicionGlobal = casillaSalida
-                    seHizoKillLocal = resolverCasilla(casillaSalida,
-                        jugadorActual.color)
+                    seHizoKillLocal = resolverCasilla(casillaSalida, jugadorActual.color)
                 }
             }
 
@@ -265,7 +286,7 @@ class GestorJuego
         Log.i(TAG, "ESTADO FINAL FICHA: Estado ${ficha.estado}, " +
                 "PosGlobal ${ficha.posicionGlobal}")
 
-        //Guardar el resultado en la variable pública
+        //Guardar el resultado en la variable pública para sonidos/animación
         huboKill = seHizoKillLocal
 
         //--- Comprobación de victoria ---
@@ -276,66 +297,65 @@ class GestorJuego
         }
 
         //--- Cálculo de turnos extra por meta o kill ---
-        //Se considera que llegó a la meta final si su estado es EN_META y su posición coincide
-        //con el final
         val llegoAMetaFinal = ficha.estado == EstadoFicha.EN_META &&
                 ficha.posicionGlobal == baseMeta[ficha.color]!! + LONGITUD_META
 
-        if(huboKill)
-        {
+        if(huboKill) {
             turnosExtraPorKill++
-            seisesConsecutivos = 0 //Reiniciar contador de seises al matar
-            Log.d(TAG, "¡Kill realizado! Se añade 1 turno extra. Total: $turnosExtraPorKill")
+            seisesConsecutivos = 0
+            Log.d(TAG, "¡Kill realizado! +1 turno.")
         }
-        else if(llegoAMetaFinal)
-        {
+        else if(llegoAMetaFinal) {
             turnosExtraPorKill++
-            seisesConsecutivos = 0 //Reiniciar contador al llegar a meta
-            Log.d(TAG, "Meta alcanzada. Se añade 1 turno extra. Total: $turnosExtraPorKill")
+            seisesConsecutivos = 0
+            Log.d(TAG, "Meta alcanzada. +1 turno.")
         }
 
         //--- GESTIÓN DEL SIGUIENTE TURNO ---
 
-        if(resultadoDado == 6)
+        // Prioridad 1: Casilla Segura
+        if(casillasSeguras.contains(ficha.posicionGlobal) &&
+            ficha.estado == EstadoFicha.EN_JUEGO &&
+            !estabaEnBase)
         {
-            //Prioridad 1: Si sacó 6, siempre tiene otro turno (Regla base)
+            Log.i(TAG, "Ficha cayó en casilla segura. Ofreciendo bonificación...")
+
+            // --- NUEVA LÓGICA: GUARDAR EL 6 ---
+            // Si llegamos aquí con un 6, ese turno extra "base" se debe guardar para después.
+            if (resultadoDado == 6) {
+                turnosExtraPorKill++ // Lo sumamos a la "cola" de turnos
+                seisesConsecutivos = 0 // Reiniciamos contador de castigo porque es zona segura
+                Log.d(TAG, "Cayó en segura con 6. Se guarda el turno extra del 6 en la cola.")
+            }
+            // ----------------------------------
+
+            estadoJuego = EstadoJuego.ESPERANDO_DECISION_BONIFICACION
+        }
+        // Prioridad 2: Si sacó 6 (y NO cayó en casilla segura)
+        else if(resultadoDado == 6)
+        {
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
             Log.d(TAG, "¡Seis! Tiene otro turno por regla base.")
         }
+        // Prioridad 3: Turnos extra acumulados (Cola)
         else if(turnosExtraPorKill > 0)
         {
-            //Prioridad 2: Bonificaciones acumuladas (kills/metas)
-            turnosExtraPorKill-- //Se consume un turno extra
-            seisesConsecutivos = 0 //El turno extra es 'limpio'
+            turnosExtraPorKill--
+            seisesConsecutivos = 0
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
-            Log.d(TAG, "Usando turno extra por bonificación. Quedan: $turnosExtraPorKill")
+            Log.d(TAG, "Usando turno extra acumulado. Quedan: $turnosExtraPorKill")
         }
+        //Prioridad 4: Power-Up de Doble Turno
         else if(jugadorActual.powerUpActivo == TipoPowerUp.DOBLE_TURNO_ASEGURADO)
         {
-            //Prioridad 3: Power-Up de Doble Turno
             Log.i(TAG, "PowerUp DOBLE_TURNO_ASEGURADO activado. El jugador tira de nuevo.")
-
             jugadorActual.powerUpActivo = TipoPowerUp.NINGUNO //Consumir el efecto
-            seisesConsecutivos = 0 //Reiniciar racha para evitar castigos injustos en el nuevo tiro
+            seisesConsecutivos = 0
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO //Darle otro tiro
         }
+        //Defecto: Se pasa el turno
         else
-        {
-            //No sacó 6, ni mató, ni llegó a meta.
-            //Verificar si cayó en casilla segura (Estrella) para ofrecer bonificación
-            if(casillasSeguras.contains(ficha.posicionGlobal) &&
-                ficha.estado == EstadoFicha.EN_JUEGO)
-            {
-                Log.i(TAG, "Ficha cayó en casilla segura. Ofreciendo bonificación...")
-                estadoJuego = EstadoJuego.ESPERANDO_DECISION_BONIFICACION
-                //No pasamos turno todavía. Esperamos la respuesta de la UI
-            }
-            else
-            {
-                //Turno normal, se pasa al siguiente
-                pasarTurno()
-            }
-        }
+            pasarTurno()
     }
 
     //--- LÓGICA DE MOVIMIENTO ---
@@ -567,7 +587,7 @@ class GestorJuego
         return fichasEnPila
     }
 
-    private fun pasarTurno()
+    fun pasarTurno()
     {
         seisesConsecutivos = 0
         indiceTurnoActual = (indiceTurnoActual + 1) % jugadores.size
@@ -645,20 +665,30 @@ class GestorJuego
     //aceptaReto: true si aceptó y GANÓ la trivia. false si rechazó o perdió.
     fun resolverBonificacionCasillaSegura(aceptoYgano: Boolean)
     {
-        if(estadoJuego != EstadoJuego.ESPERANDO_DECISION_BONIFICACION)
-            return
+        if(estadoJuego != EstadoJuego.ESPERANDO_DECISION_BONIFICACION) return
 
         if(aceptoYgano)
         {
-            Log.i(TAG, "Reto de casilla segura superado. Turno extra concedido.")
-            //Concedemos turno extra
+            Log.i(TAG, "Reto superado. Turno extra concedido.")
+            // Ganó trivia -> Juega este turno extra.
+            // Si tenía un 6 guardado en turnosExtraPorKill, se usará DESPUÉS de este tiro.
             seisesConsecutivos = 0
             estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
         }
         else
         {
-            Log.i(TAG, "Reto rechazado o fallido. Se pasa turno.")
-            pasarTurno()
+            Log.i(TAG, "Reto rechazado o fallido.")
+
+            // Si falló, verificamos si tenía turno guardado (el del 6 o un kill previo)
+            if (turnosExtraPorKill > 0) {
+                Log.d(TAG, "Usando turno guardado (ej. por sacar 6).")
+                turnosExtraPorKill--
+                seisesConsecutivos = 0
+                estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
+            }
+            else {
+                pasarTurno()
+            }
         }
     }
 
@@ -715,10 +745,17 @@ class GestorJuego
         }
         return camino
     }
-    fun iniciarJuegoConJugadores(listaJugadoresPreconfigurada: List<Jugador>)
+    fun iniciarJuegoConJugadores(listaJugadoresPreconfigurada: List<Jugador>, turnoInicial: Int = 0)
     {
         jugadores = listaJugadoresPreconfigurada
-        indiceTurnoActual = 0
+
+        //Validamos que el índice exista (0 a size-1)
+        if (turnoInicial in jugadores.indices) {
+            indiceTurnoActual = turnoInicial
+        } else {
+            indiceTurnoActual = 0
+        }
+
         seisesConsecutivos = 0
         estadoJuego = EstadoJuego.ESPERANDO_LANZAMIENTO
     }

@@ -15,7 +15,8 @@ data class Jugador(
     //esperando a que llegue el momento de aplicarlo
     var powerUpActivo: TipoPowerUp = TipoPowerUp.NINGUNO,
 
-    val esIA: Boolean = false,
-    val nombre: String = if(esIA) "CPU" else "Jugador",
-    var aciertosTrivia: Int = 0
+    var esIA: Boolean = false,
+    var nombre: String = if(esIA) "CPU" else "Jugador",
+    var aciertosTrivia: Int = 0,
+    var puntaje: Int = 0
 )

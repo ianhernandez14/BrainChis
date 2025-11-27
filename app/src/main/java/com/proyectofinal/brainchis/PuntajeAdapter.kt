@@ -33,10 +33,10 @@ class PuntajeAdapter(private val listaPuntajes: List<Puntaje>) :
         holder.txtAciertos.text = puntaje.aciertos.toString()
         holder.txtPuntaje.text = puntaje.puntosTotales.toString()
 
-        // Colores especiales para el podio
-        if(position == 0) holder.txtPosicion.setTextColor(android.graphics.Color.parseColor("#FFD700")) // Oro
-        else if(position == 1) holder.txtPosicion.setTextColor(android.graphics.Color.parseColor("#C0C0C0")) // Plata
-        else if(position == 2) holder.txtPosicion.setTextColor(android.graphics.Color.parseColor("#CD7F32")) // Bronce
+        //Colores especiales para el podio
+        if(position == 0) holder.txtPosicion.setTextColor(android.graphics.Color.parseColor("#FFD700")) //Oro
+        else if(position == 1) holder.txtPosicion.setTextColor(android.graphics.Color.parseColor("#C0C0C0")) //Plata
+        else if(position == 2) holder.txtPosicion.setTextColor(android.graphics.Color.parseColor("#CD7F32")) //Bronce
     }
 
     override fun getItemCount() = listaPuntajes.size

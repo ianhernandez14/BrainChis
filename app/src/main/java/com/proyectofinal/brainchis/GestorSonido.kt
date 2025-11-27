@@ -13,19 +13,22 @@ class GestorSonido(private val context: Context)
     private val soundPool: SoundPool
     private val mapaSonidos = mutableMapOf<TipoSonido, Int>()
 
-    // Variable para controlar si suena o no
+    //Variable para controlar si suena o no
     var sonidoHabilitado: Boolean = true
         private set
+
+    //Variable para saber si la app está en segundo plano
+    private var enPausa: Boolean = false
 
     private val PREFS_NAME = "BrainchisConfig"
     private val KEY_SONIDO = "SonidoHabilitado"
 
     init {
-        // 1. Cargar configuración guardada
+        //1. Cargar configuración guardada
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        sonidoHabilitado = prefs.getBoolean(KEY_SONIDO, true) // Por defecto true (suena)
+        sonidoHabilitado = prefs.getBoolean(KEY_SONIDO, true) //Por defecto true (suena)
 
-        // 2. Configuración de audio
+        //2. Configuración de audio
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -36,7 +39,7 @@ class GestorSonido(private val context: Context)
             .setAudioAttributes(audioAttributes)
             .build()
 
-        // 3. Cargar los sonidos
+        //3. Cargar los sonidos
         try {
             mapaSonidos[TipoSonido.MENU] = soundPool.load(context, R.raw.boton_menu, 1)
             mapaSonidos[TipoSonido.DADO] = soundPool.load(context, R.raw.dado, 1)
@@ -52,18 +55,18 @@ class GestorSonido(private val context: Context)
     }
 
     fun reproducir(tipo: TipoSonido) {
-        // Si está silenciado, no hacemos nada
-        if (!sonidoHabilitado) return
+        //CAMBIO: Si el usuario lo desactivó O si la app está en pausa, no sonar.
+        if (!sonidoHabilitado || enPausa) return
 
         val soundId = mapaSonidos[tipo] ?: return
         soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
     }
 
-    // Función para cambiar el estado (On/Off) y guardar
+    //Función para cambiar el estado (On/Off) y guardar
     fun alternarSonido(): Boolean {
         sonidoHabilitado = !sonidoHabilitado
 
-        // Guardar en memoria
+        //Guardar en memoria
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_SONIDO, sonidoHabilitado).apply()
 
@@ -71,10 +74,12 @@ class GestorSonido(private val context: Context)
     }
 
     fun pausarTodo() {
-        soundPool.autoPause()
+        enPausa = true //Bloquear nuevos sonidos
+        soundPool.autoPause() //Detener los actuales
     }
 
     fun reanudarTodo() {
+        enPausa = false //Permitir nuevos sonidos
         if (sonidoHabilitado) {
             soundPool.autoResume()
         }

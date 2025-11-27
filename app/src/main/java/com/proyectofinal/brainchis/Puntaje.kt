@@ -5,7 +5,7 @@ data class Puntaje(
     val puntosTotales: Int,
     val fecha: Long = System.currentTimeMillis()
 ) : Comparable<Puntaje> {
-    // Ordenar de mayor a menor puntaje
+    //Ordenar de mayor a menor puntaje
     override fun compareTo(other: Puntaje): Int {
         return other.puntosTotales - this.puntosTotales
     }
