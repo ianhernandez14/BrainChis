@@ -36,7 +36,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="¡ZONA SEGURA!"
+                android:text="@string/titulo_zona_segura"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#2D3748"
@@ -45,7 +45,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="¿Quieres responder una pregunta para ganar un TURNO EXTRA?"
+                android:text="@string/pregunta_turno_extra"
                 android:gravity="center"
                 android:textSize="16sp"
                 android:textColor="#718096"
@@ -55,7 +55,7 @@
                 android:id="@+id/btnAceptarReto"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:text="Sí, me arriesgo"
+                android:text="@string/boton_aceptar_reto"
                 android:textStyle="bold"
                 app:cornerRadius="12dp"
                 app:backgroundTint="#48BB78"
@@ -66,7 +66,7 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:text="No, terminar turno"
+                android:text="@string/boton_rechazar_reto"
                 android:textColor="#E53E3E"
                 app:strokeColor="#E53E3E"
                 app:cornerRadius="12dp"/>

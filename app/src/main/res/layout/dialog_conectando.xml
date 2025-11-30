@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_conectando"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#2D3748"
+            android:layout_marginBottom="24dp"/>
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="#667EEA"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:id="@+id/txtMensajeConectando"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_buscando_servidor"
+            android:textSize="16sp"
+            android:textColor="#718096"
+            android:textAlignment="center"
+            android:layout_marginBottom="24dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarConexion"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/boton_cancelar_powerup"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/rojo"
+            app:strokeColor="#CBD5E0"
+            app:cornerRadius="12dp"
+            android:textAllCaps="false"/>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -21,8 +21,6 @@ class Tablero: View
     interface OnCasillaTocadaListener{
         fun onCasillaTocada(col: Int, fila: Int)
     }
-
-    lateinit var onCasillaTocadaListener: JuegoActivity
     private var listener: OnCasillaTocadaListener? = null
 
     private val pBorde = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -244,7 +242,7 @@ class Tablero: View
 
         //Camino Verde (Filas 1-5, Columna 7)
         pRelleno.color = colorBaseVerde
-        for (i in 1..5) {
+        for(i in 1..5) {
             val left = 7 * casilla
             val top = i * casilla
             val right = 8 * casilla
@@ -255,7 +253,7 @@ class Tablero: View
 
         //Camino Rojo (Columnas 1-5, Fila 7)
         pRelleno.color = colorBaseRojo
-        for (i in 1..5) {
+        for(i in 1..5) {
             val left = i * casilla
             val top = 7 * casilla
             val right = (i + 1) * casilla
@@ -266,7 +264,7 @@ class Tablero: View
 
         //Camino Amarillo (Columnas 9-13, Fila 7)
         pRelleno.color = colorBaseAmarillo
-        for (i in 9..13) {
+        for(i in 9..13) {
             val left = i * casilla
             val top = 7 * casilla
             val right = (i + 1) * casilla
@@ -277,7 +275,7 @@ class Tablero: View
 
         //Camino Azul (Filas 9-13, Columna 7)
         pRelleno.color = colorBaseAzul
-        for (i in 9..13) {
+        for(i in 9..13) {
             val left = 7 * casilla
             val top = i * casilla
             val right = 8 * casilla
@@ -772,9 +770,9 @@ class Tablero: View
         val pila = mutableListOf<Ficha>()
         //El orden de listaJugadores (Rojo, Verde, etc.) es importante
         //para que el 'indexOf' sea consistente en cada redibujado
-        for (jugador in listaJugadores)
+        for(jugador in listaJugadores)
         {
-            for (ficha in jugador.fichas)
+            for(ficha in jugador.fichas)
             {
                 //Comprobamos solo fichas EN_JUEGO o EN_META
                 if(ficha.posicionGlobal == posicionGlobal && (ficha.estado == EstadoFicha.EN_JUEGO

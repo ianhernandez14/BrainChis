@@ -16,7 +16,8 @@ class BaseDeDatosHelper(context: Context) : SQLiteOpenHelper(context, "Brainchis
         const val COL_FECHA = "fecha"
     }
 
-    override fun onCreate(db: SQLiteDatabase?) {
+    override fun onCreate(db: SQLiteDatabase?)
+    {
         val crearTabla = "CREATE TABLE $TABLA_PUNTAJES (" +
                 "$COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$COL_NOMBRE TEXT, " +
@@ -26,27 +27,28 @@ class BaseDeDatosHelper(context: Context) : SQLiteOpenHelper(context, "Brainchis
         db?.execSQL(crearTabla)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int)
+    {
         db?.execSQL("DROP TABLE IF EXISTS $TABLA_PUNTAJES")
         onCreate(db)
     }
 
-    // Función para insertar un puntaje
-    // Modificada para sumar puntos si el usuario ya existe (Case Sensitive)
+    //Función para insertar un puntaje o sumar puntos si el usuario ya existe
     fun insertarOActualizarPuntaje(puntaje: Puntaje)
     {
         val db = this.writableDatabase
 
-        // 1. Buscar si ya existe el nombre exacto
-        // "BINARY" fuerza la distinción de mayúsculas/minúsculas en SQLite
+        //Buscar si ya existe el nombre exacto
+        //BINARY fuerza la distinción de mayúsculas y minúsculas en sqlite
         val cursor = db.rawQuery(
-            "SELECT $COL_ID, $COL_ACIERTOS, $COL_PUNTOS FROM $TABLA_PUNTAJES WHERE $COL_NOMBRE = ? COLLATE BINARY",
+            "SELECT $COL_ID, $COL_ACIERTOS, $COL_PUNTOS FROM $TABLA_PUNTAJES WHERE " +
+                    "$COL_NOMBRE = ? COLLATE BINARY",
             arrayOf(puntaje.nombre)
         )
 
-        if (cursor.moveToFirst())
+        if(cursor.moveToFirst())
         {
-            // --- YA EXISTE: ACTUALIZAR (SUMAR) ---
+            //Si ya existe, entonces sumar
             val id = cursor.getInt(0)
             val aciertosViejos = cursor.getInt(1)
             val puntosViejos = cursor.getInt(2)
@@ -54,23 +56,25 @@ class BaseDeDatosHelper(context: Context) : SQLiteOpenHelper(context, "Brainchis
             val nuevosAciertos = aciertosViejos + puntaje.aciertos
             val nuevosPuntos = puntosViejos + puntaje.puntosTotales
 
-            val valores = ContentValues().apply {
+            val valores = ContentValues().apply{
                 put(COL_ACIERTOS, nuevosAciertos)
                 put(COL_PUNTOS, nuevosPuntos)
-                put(COL_FECHA, System.currentTimeMillis()) //Actualizamos fecha a la última jugada
+                put(COL_FECHA, System.currentTimeMillis()) //Actualizar fecha a la última jugada
             }
 
-            db.update(TABLA_PUNTAJES, valores, "$COL_ID = ?", arrayOf(id.toString()))
+            db.update(TABLA_PUNTAJES, valores, "$COL_ID = ?",
+                arrayOf(id.toString()))
         }
         else
         {
-            // --- NO EXISTE: INSERTAR NUEVO ---
-            val valores = ContentValues().apply {
+            //Si no existe, insertar un registo nuevo
+            val valores = ContentValues().apply{
                 put(COL_NOMBRE, puntaje.nombre)
                 put(COL_ACIERTOS, puntaje.aciertos)
                 put(COL_PUNTOS, puntaje.puntosTotales)
                 put(COL_FECHA, puntaje.fecha)
             }
+
             db.insert(TABLA_PUNTAJES, null, valores)
         }
 
@@ -78,19 +82,26 @@ class BaseDeDatosHelper(context: Context) : SQLiteOpenHelper(context, "Brainchis
         db.close()
     }
 
-    // Función para leer todos los puntajes
-    fun obtenerTodosLosPuntajes(): List<Puntaje> {
+    //Función para leer todos los puntajes
+    fun obtenerTodosLosPuntajes(): List<Puntaje>
+    {
         val lista = mutableListOf<Puntaje>()
         val db = this.readableDatabase
-        // Ordenamos por puntos de mayor a menor (DESC)
-        val cursor = db.rawQuery("SELECT * FROM $TABLA_PUNTAJES ORDER BY $COL_PUNTOS DESC", null)
 
-        if (cursor.moveToFirst()) {
+        //Ordenar por puntos de mayor a menor con DESC
+        val cursor = db.rawQuery("SELECT * FROM $TABLA_PUNTAJES ORDER BY $COL_PUNTOS DESC",
+            null)
+
+        if(cursor.moveToFirst()) {
             do {
-                val nombre = cursor.getString(cursor.getColumnIndexOrThrow(COL_NOMBRE))
-                val aciertos = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ACIERTOS))
-                val puntos = cursor.getInt(cursor.getColumnIndexOrThrow(COL_PUNTOS))
-                val fecha = cursor.getLong(cursor.getColumnIndexOrThrow(COL_FECHA))
+                val nombre = cursor.getString(
+                    cursor.getColumnIndexOrThrow(COL_NOMBRE))
+                val aciertos = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(COL_ACIERTOS))
+                val puntos = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(COL_PUNTOS))
+                val fecha = cursor.getLong(
+                    cursor.getColumnIndexOrThrow(COL_FECHA))
 
                 lista.add(Puntaje(nombre, aciertos, puntos, fecha))
             } while (cursor.moveToNext())

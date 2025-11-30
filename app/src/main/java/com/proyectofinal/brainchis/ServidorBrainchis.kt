@@ -13,135 +13,185 @@ import java.net.Socket
 import java.util.Collections
 import kotlin.random.Random
 
-object ServidorBrainchis {
+object ServidorBrainchis
+{
     private const val PORT = 65432
     private const val TAG = "BrainchisServer"
     private var serverSocket: ServerSocket? = null
     private var estaCorriendo = false
     private val gson = Gson()
-    private var serverJob: Job? = null // Para poder cancelar la corrutina principal
-
+    private var serverJob: Job? = null
+    
     private val clientes = Collections.synchronizedList(mutableListOf<ClientHandler>())
-
-    // Lista sincronizada para evitar conflictos de hilos
-    private val coloresDisponibles = Collections.synchronizedList(mutableListOf(
-        ColorJugador.ROJO, ColorJugador.AMARILLO,
-        ColorJugador.VERDE, ColorJugador.AZUL
-    ))
-
+    
+    //Colores disponibles actualmente
+    private val coloresDisponibles = Collections.synchronizedList(
+        mutableListOf(
+            ColorJugador.ROJO, ColorJugador.AMARILLO,
+            ColorJugador.VERDE, ColorJugador.AZUL
+        )
+    )
+    
+    //--- MEMORIA DE SESIÓN ---
+    //Mapa: Color -> IP (Ej: ROJO -> 192.168.1.50)
+    private val historialIPs = Collections.synchronizedMap(mutableMapOf<ColorJugador,
+            String>())
+    
+    //Mapa: Color -> Nombre (Ej: AMARILLO -> "Oscar")
+    private val historialNombres = Collections.synchronizedMap(mutableMapOf<ColorJugador,
+            String>())
+    
     private var juegoIniciado = false
-
-    fun iniciar() {
-        // 1. Si ya estaba corriendo, lo matamos primero para evitar "zombies"
-        if (estaCorriendo) {
-            Log.w(TAG, "Reiniciando servidor previo...")
+    
+    fun iniciar()
+    {
+        if(estaCorriendo)
             detener()
-        }
-
+        
         estaCorriendo = true
         reiniciarEstado()
-
-        serverJob = CoroutineScope(Dispatchers.IO).launch {
-            try {
+        
+        serverJob = CoroutineScope(Dispatchers.IO).launch{
+            try
+            {
                 serverSocket = ServerSocket(PORT)
-                serverSocket?.reuseAddress = true // Importante para reiniciar rápido
+                serverSocket?.reuseAddress = true
                 Log.i(TAG, "Servidor iniciado en puerto $PORT")
-
-                while (estaCorriendo) {
+                
+                while(estaCorriendo)
+                {
                     val socket = serverSocket?.accept()
-                    if (socket != null) {
+                    
+                    if(socket != null)
+                    {
                         val handler = ClientHandler(socket)
                         clientes.add(handler)
                         handler.start()
                     }
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Socket servidor cerrado o error: ${e.message}")
-            } finally {
+            }
+            catch(e: Exception){
+                Log.e(TAG, "Error servidor: ${e.message}")
+            }
+            finally{
                 detener()
             }
         }
     }
-
-    fun detener() {
+    
+    fun detener()
+    {
         estaCorriendo = false
         juegoIniciado = false
-
-        try {
+        try{
             serverSocket?.close()
-        } catch (e: Exception) { e.printStackTrace() }
-
-        // Cerrar todos los clientes
-        synchronized(clientes) {
+        }
+        catch(e: Exception){}
+        
+        synchronized(clientes)
+        {
             clientes.forEach { it.cerrarSocket() }
             clientes.clear()
         }
-
+        
         serverJob?.cancel()
-        Log.i(TAG, "Servidor detenido completamente.")
     }
-
-    private fun reiniciarEstado() {
+    
+    private fun reiniciarEstado()
+    {
         coloresDisponibles.clear()
-        coloresDisponibles.addAll(listOf(ColorJugador.ROJO, ColorJugador.AMARILLO, ColorJugador.VERDE, ColorJugador.AZUL))
+        coloresDisponibles.addAll(
+            listOf(
+                ColorJugador.ROJO,
+                ColorJugador.AMARILLO,
+                ColorJugador.VERDE,
+                ColorJugador.AZUL
+            )
+        )
+        
+        //Limpiar memoria al crear nueva sala
+        historialIPs.clear()
+        historialNombres.clear()
+        
         juegoIniciado = false
         clientes.clear()
     }
-
-    // Función para reciclar un color cuando alguien se va del lobby
-    private fun reciclarColor(color: ColorJugador?) {
-        if (color == null) return
-
-        synchronized(coloresDisponibles) {
-            if (!coloresDisponibles.contains(color)) {
+    
+    private fun reciclarColor(color: ColorJugador?)
+    {
+        if(color == null)
+            return
+        
+        synchronized(coloresDisponibles)
+        {
+            if(!coloresDisponibles.contains(color))
+            {
                 coloresDisponibles.add(color)
-
-                // --- CORRECCIÓN: ORDENAR POR PRIORIDAD DE JUEGO ---
-                // Definimos el orden exacto en que queremos que se asignen
+                
+                //Ordenar por prioridad (Rojo -> Amarillo -> Verde -> Azul)
                 val ordenPrioridad = listOf(
                     ColorJugador.ROJO,
                     ColorJugador.AMARILLO,
                     ColorJugador.VERDE,
                     ColorJugador.AZUL
                 )
-
-                // Ordenamos la lista disponible basándonos en ese orden maestro
-                coloresDisponibles.sortBy { ordenPrioridad.indexOf(it) }
-
-                Log.d(TAG, "Color reciclado y reordenado: $color. Lista actual: $coloresDisponibles")
+                coloresDisponibles.sortBy{ ordenPrioridad.indexOf(it) }
             }
         }
     }
-
-    fun broadcast(mensaje: MensajeRed, remitente: ClientHandler?) {
-        synchronized(clientes) {
-            for (cliente in clientes) {
-                if (cliente != remitente) cliente.enviar(mensaje)
+    
+    //Función para actualizar nombre en el historial (llamada cuando alguien edita su nombre)
+    fun actualizarNombreHistorico(color: ColorJugador, nombre: String){
+        historialNombres[color] = nombre
+    }
+    
+    fun broadcast(mensaje: MensajeRed, remitente: ClientHandler?)
+    {
+        synchronized(clientes)
+        {
+            for(cliente in clientes)
+            {
+                if(cliente != remitente)
+                    cliente.enviar(mensaje)
             }
         }
     }
-
-    private fun enviarListaLobbyATodos() {
-        val listaInfo = synchronized(clientes) {
+    
+    private fun enviarListaLobbyATodos()
+    {
+        val listaInfo = synchronized(clientes){
             clientes.map { InfoJugador(it.nombreJugador, it.colorAsignado!!) }
         }
+        
         val msgLobby = MensajeRed(AccionRed.ACTUALIZAR_LOBBY, listaJugadores = listaInfo)
         broadcast(msgLobby, null)
     }
-
-    class ClientHandler(val socket: Socket) : Thread() {
+    
+    class ClientHandler(val socket: Socket) : Thread()
+    {
         private val dataIn = DataInputStream(socket.getInputStream())
         private val dataOut = DataOutputStream(socket.getOutputStream())
         private var corriendo = true
-
+        
+        //IP del cliente
+        val ipCliente: String = socket.inetAddress.hostAddress ?: ""
+        
         var nombreJugador: String = ""
         var colorAsignado: ColorJugador? = null
-
-        override fun run() {
-            try {
-                while (corriendo) {
+        private var ultimoMensajeTime = System.currentTimeMillis()
+        
+        override fun run()
+        {
+            iniciarMonitorTimeout()
+            
+            try
+            {
+                while(corriendo)
+                {
                     val length = dataIn.readInt()
-                    if (length > 0) {
+                    if(length > 0)
+                    {
+                        ultimoMensajeTime = System.currentTimeMillis()
                         val buffer = ByteArray(length)
                         dataIn.readFully(buffer)
                         val json = String(buffer, Charsets.UTF_8)
@@ -149,96 +199,192 @@ object ServidorBrainchis {
                         procesarMensaje(mensaje)
                     }
                 }
-            } catch (e: Exception) {
-                // Error de conexión (cliente se fue)
-            }finally {
+            }
+            catch(e: Exception){}
+            finally
+            {
                 cerrarSocket()
                 clientes.remove(this)
-
-                if (!juegoIniciado) {
-                    // Si estamos en Lobby: Reciclar y actualizar lista
+                
+                if(!juegoIniciado)
+                {
+                    //Si es lobby, reciclar el color
                     reciclarColor(colorAsignado)
-                    if (clientes.isNotEmpty()) ServidorBrainchis.enviarListaLobbyATodos()
-                } else {
-                    // --- SI ESTAMOS EN JUEGO ---
-                    // 1. Reciclamos color para que pueda volver a entrar
+                    if(clientes.isNotEmpty())
+                        enviarListaLobbyATodos()
+                }
+                else
+                {
+                    //Si es juego, reciclar el color y avisar de la desconexión
                     reciclarColor(colorAsignado)
-
-                    // 2. Avisamos a los demás que se desconectó (para activar CPU)
+                    
                     val msgDesc = MensajeRed(
                         AccionRed.JUGADOR_DESCONECTADO,
                         colorJugador = colorAsignado,
                         nombreJugador = nombreJugador
                     )
+                    
                     broadcast(msgDesc, null)
                 }
             }
         }
-
-        private fun procesarMensaje(mensaje: MensajeRed) {
-            when (mensaje.accion) {
-                AccionRed.CONECTAR -> {
-                    synchronized(coloresDisponibles) {
-                        if (coloresDisponibles.isEmpty()) {
+        
+        private fun iniciarMonitorTimeout()
+        {
+            CoroutineScope(Dispatchers.IO).launch{
+                while(corriendo)
+                {
+                    sleep(1000)
+                    
+                    if(System.currentTimeMillis() - ultimoMensajeTime > 5000)
+                    {
+                        cerrarSocket()
+                        break
+                    }
+                }
+            }
+        }
+        
+        private fun procesarMensaje(mensaje: MensajeRed)
+        {
+            when(mensaje.accion)
+            {
+                //Ignorar
+                AccionRed.PING -> {}
+                
+                AccionRed.CONECTAR ->
+                {
+                    synchronized(coloresDisponibles)
+                    {
+                        if(coloresDisponibles.isEmpty())
+                        {
                             enviar(MensajeRed(AccionRed.DESCONEXION, mensajeTexto = "Sala llena"))
                             return
                         }
-
-                        colorAsignado = coloresDisponibles.removeAt(0)
-
-                        val nombreEnviado = mensaje.nombreJugador
-                        if (nombreEnviado != null && nombreEnviado.isNotBlank()) {
-                            nombreJugador = nombreEnviado
-                        } else {
-                            val nombreColor = colorAsignado?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "Desconocido"
-                            nombreJugador = "Jugador $nombreColor"
+                        
+                        //--- ALGORITMO DE ASIGNACIÓN POR IP ---
+                        var colorElegido: ColorJugador? = null
+                        
+                        // Buscar si esta IP ya tenía un color asignado en esta sesión
+                        for(color in coloresDisponibles)
+                        {
+                            if(historialIPs[color] == ipCliente)
+                            {
+                                colorElegido = color
+                                break
+                            }
                         }
-
-                        // RESPONDER AL CLIENTE (Para que sepa que conectó, pero se quedará esperando estado)
-                        enviar(MensajeRed(AccionRed.CONECTAR, colorJugador = colorAsignado))
-
-                        if (!juegoIniciado) {
-                            enviarListaLobbyATodos()
-                        } else {
-                            // --- CAMBIO: NO HACEMOS BROADCAST DIRECTO ---
-                            // En lugar de avisar a todos "Fulanito entró",
-                            // le avisamos SOLO al HOST para que él decida cuándo meterlo.
-
-                            val msgSolicitud = MensajeRed(
-                                accion = AccionRed.SOLICITUD_RECONEXION,
+                        
+                        //Si no tiene historial, o su color histórico está ocupado,
+                        //buscar el primer color que no tenga historial (nuevo jugador)
+                        if(colorElegido == null)
+                        {
+                            for(color in coloresDisponibles)
+                            {
+                                if(!historialIPs.containsKey(color))
+                                {
+                                    colorElegido = color
+                                    break
+                                }
+                            }
+                        }
+                        
+                        //Si todos tienen historial pero el mío no coincide,
+                        //tomar el primero disponible
+                        if(colorElegido == null)
+                            colorElegido = coloresDisponibles[0]
+                        
+                        //Asignar y quitar de la lista
+                        coloresDisponibles.remove(colorElegido)
+                        colorAsignado = colorElegido
+                        
+                        //Guardar IP en historial
+                        historialIPs[colorAsignado!!] = ipCliente
+                        
+                        //--- RECUPERAR NOMBRE ---
+                        val nombreEnviado = mensaje.nombreJugador
+                        val nombreHistorico = historialNombres[colorAsignado]
+                        
+                        if(nombreHistorico != null)
+                        {
+                            //Si ya había un nombre guardado, usarlo
+                            nombreJugador = nombreHistorico
+                        }
+                        else if(nombreEnviado != null && nombreEnviado.isNotBlank())
+                        {
+                            nombreJugador = nombreEnviado
+                            historialNombres[colorAsignado!!] = nombreJugador
+                        }
+                        else
+                        {
+                            val nombreColor = colorAsignado?.name?.lowercase()
+                                ?.replaceFirstChar { it.uppercase() } ?: "Desconocido"
+                            nombreJugador = "Jugador $nombreColor"
+                            historialNombres[colorAsignado!!] = nombreJugador
+                        }
+                        
+                        //RESPONDER
+                        enviar(
+                            MensajeRed(
+                                AccionRed.CONECTAR,
                                 colorJugador = colorAsignado,
                                 nombreJugador = nombreJugador
                             )
-
-                            // Buscamos al Host (asumimos que el Host siempre es el Rojo o el primero)
-                            // Como ServidorBrainchis corre en el Host, podemos usar un truco:
-                            // Enviar este mensaje a "mí mismo" (loopback) a través del socket del Host
-                            // O mejor: Hacer broadcast y que solo el Rojo (Host) lo procese.
-                            broadcast(msgSolicitud, null)
+                        )
+                        
+                        if(!juegoIniciado)
+                            enviarListaLobbyATodos()
+                        else
+                        {
+                            //Reconexión en juego
+                            broadcast(
+                                MensajeRed(
+                                    AccionRed.SOLICITUD_RECONEXION, //Avisar al host
+                                    colorJugador = colorAsignado,
+                                    nombreJugador = nombreJugador
+                                ), null
+                            )
                         }
                     }
                 }
-
-                AccionRed.CAMBIAR_NOMBRE -> {
-                    this.nombreJugador = mensaje.nombreJugador ?: this.nombreJugador
+                
+                AccionRed.CAMBIAR_NOMBRE ->
+                {
+                    val nuevoNombre = mensaje.nombreJugador ?: nombreJugador
+                    this.nombreJugador = nuevoNombre
+                    
+                    //Actualizar historial
+                    if(colorAsignado != null)
+                        actualizarNombreHistorico(colorAsignado!!, nuevoNombre)
+                    
                     enviarListaLobbyATodos()
                 }
-
-                AccionRed.INICIAR_PARTIDA -> {
+                
+                AccionRed.INICIAR_PARTIDA ->
+                {
                     val cpus = mensaje.cantidadCPUs ?: 0
                     val turnoRandom = Random.nextInt(clientes.size + cpus)
-                    val msgInicio = MensajeRed(AccionRed.INICIAR_PARTIDA, resultadoDado = turnoRandom, cantidadCPUs = cpus)
-                    ServidorBrainchis.broadcast(msgInicio, null)
+                    val msgInicio = MensajeRed(
+                        AccionRed.INICIAR_PARTIDA,
+                        resultadoDado = turnoRandom,
+                        cantidadCPUs = cpus
+                    )
+                    
+                    broadcast(msgInicio, null)
                     juegoIniciado = true
                 }
-
-                else -> ServidorBrainchis.broadcast(mensaje, this)
+                
+                else -> broadcast(mensaje, this)
             }
         }
-
-        fun enviar(mensaje: MensajeRed) {
-            if (!corriendo) return
-            try {
+        
+        fun enviar(mensaje: MensajeRed)
+        {
+            if(!corriendo)
+                return
+            
+            try
+            {
                 val json = gson.toJson(mensaje)
                 val bytes = json.toByteArray(Charsets.UTF_8)
                 synchronized(dataOut) {
@@ -246,14 +392,20 @@ object ServidorBrainchis {
                     dataOut.write(bytes)
                     dataOut.flush()
                 }
-            } catch (e: Exception) {
-                corriendo = false // Marcar error
+            }
+            catch(e: Exception){
+                corriendo = false
             }
         }
-
-        fun cerrarSocket() {
+        
+        fun cerrarSocket()
+        {
             corriendo = false
-            try { socket.close() } catch (e: Exception) {}
+            try
+            {
+                socket.close()
+            }
+            catch(e: Exception){}
         }
     }
 }

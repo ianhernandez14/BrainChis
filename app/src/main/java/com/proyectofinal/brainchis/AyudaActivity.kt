@@ -6,12 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 
 class AyudaActivity : AppCompatActivity()
 {
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?)
+    {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ayuda)
 
         val btnVolver = findViewById<Button>(R.id.btnVolverAyuda)
-        btnVolver.setOnClickListener {
+        btnVolver.setOnClickListener{
             finish()
         }
     }

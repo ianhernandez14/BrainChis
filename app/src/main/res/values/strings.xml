@@ -23,18 +23,18 @@
     <string name="ayuda_subtitulo">Guía completa del juego</string>
     <string name="ayuda_como_jugar_titulo">🎲 Cómo Jugar</string>
     <string name="ayuda_como_jugar_descripcion">1. Cada jugador mueve su ficha por el tablero según
-        el dado\n\n2. Al caer en casillas especiales, responde preguntas educativas para obtener
+        el dado\n\n2. Al caer en casillas especiales, responde preguntas para obtener
         puntos y ventajas a la hora del juego\n\n3. El objetivo es llevar todas tus fichas a la meta antes que los demás
     </string>
     <string name="ayuda_puntos_titulo">🏆 Sistema de Puntos</string>
     <string name="ayuda_puntos_descripcion">Gana puntos y ventajas al responder correctamente las preguntas y
         al avanzar tus fichas. Cuantos más aciertos, mayor será tu puntaje final. Los puntos se
-        calculan basándose en:\n\n• Respuestas correctas\n• Velocidad de respuesta
+        calculan basándose en:\n\n• Respuestas correctas\n• Velocidad de respuesta\n• Ganar la partida
     </string>
     <string name="ayuda_estrategias_titulo">💡 Estrategias y Consejos</string>
     <string name="ayuda_estrategias_descripcion">• Piensa antes de mover tus fichas\n• Prioriza
-        responder correctamente para ganar más puntos\n• Observa los movimientos de tus oponentes\n•
-        Planifica tu estrategia a largo plazo\n• Usa las casillas especiales a tu favor
+        responder correctamente para garantizar ganar puntos\n• Observa los movimientos de tus oponentes\n•
+        Planifica tu estrategia a largo plazo\n• Usa las casillas especiales y los powerups sabiamente
     </string>
     <string name="ayuda_boton_volver">Volver al Menú</string>
 
@@ -44,5 +44,84 @@
     <string name="pausa_boton_reiniciar">🔄 Reiniciar Juego</string>
     <string name="pausa_boton_menu">🏠 Menú Principal</string>
 
+    <!-- layout_preguntas -->
     <string name="layout_preguntas_cancelar">Cancelar</string>
+
+    <!-- activity_juego -->
+    <string name="power_up_salida_maestra">POWER-UP: SALIDA MAESTRA</string>
+    <string name="temporizador_inicial">3</string>
+
+    <!-- activity_main  -->
+    <string name="boton_ayuda_menu">?</string>
+
+    <!-- dialog_lobby_host -->
+    <string name="titulo_lobby_host">Sala de Espera (Host)</string>
+    <string name="ip_ejemplo_lobby">192.168.X.X</string>
+    <string name="descripcion_copiar_ip">Copiar IP</string>
+    <string name="label_rellenar_cpus">Rellenar con CPUs:</string>
+    <string name="radio_cero_cpu">0</string>
+    <string name="radio_un_cpu">1 CPU</string>
+    <string name="radio_dos_cpu">2 CPUs</string>
+    <string name="radio_tres_cpu">3 CPUs</string>
+    <string name="boton_iniciar_partida">INICIAR PARTIDA</string>
+    <string name="boton_cancelar_sala">Cancelar Sala</string>
+
+    <!-- dialog_unirse  -->
+    <string name="titulo_unirse_partida">Unirse a Partida</string>
+    <string name="nota_info_reconexion">Nota: Si te reconectas a una partida en curso, entrarás hasta que sea tu turno.</string>
+    <string name="label_recientes">Recientes:</string>
+    <string name="label_ip_servidor">Dirección IP del Servidor:</string>
+    <string name="hint_ejemplo_ip">Ej. 192.168.1.50</string>
+    <string name="boton_conectar">CONECTAR</string>
+
+    <!-- dialog_conectando -->
+    <string name="label_conectando">Conectando...</string>
+    <string name="label_buscando_servidor">Buscando servidor en...</string>
+
+    <!-- dialog_confirmar_salir-->
+    <string name="label_salir">Salir</string>
+    <string name="label_salir_pregunta">¿Salir?</string>
+    <string name="label_si_sales">Si sales, el CPU jugará por ti y podrás reconectarte hasta
+            que sea tu turno.</string>
+
+    <!-- item_lobby_jugador -->
+    <string name="nombre_jugador_rojo_default">Jugador Rojo</string>
+
+    <!-- item_puntaje -->
+    <string name="posicion_ejemplo">1</string>
+    <string name="nombre_jugador_ejemplo">Carlos</string>
+    <string name="aciertos_ejemplo">12</string>
+    <string name="puntaje_ejemplo">850</string>
+
+    <!-- layout_decision_bonificacion -->
+    <string name="titulo_zona_segura">¡ZONA SEGURA!</string>
+    <string name="pregunta_turno_extra">¿Quieres responder una pregunta para ganar un TURNO EXTRA?</string>
+    <string name="boton_aceptar_reto">Sí, me arriesgo</string>
+    <string name="boton_rechazar_reto">No, terminar turno</string>
+
+    <!-- layout_preguntas  -->
+    <string name="categoria_placeholder">CATEGORÍA</string>
+    <string name="pregunta_ejemplo">¿Cuál de los siguientes es un lenguaje de programación?</string>
+    <string name="feedback_correcto">¡CORRECTO!</string>
+    <string name="opcion1_ejemplo">Python</string>
+    <string name="opcion2_ejemplo">HTML</string>
+    <string name="opcion3_ejemplo">CSS</string>
+    <string name="opcion4_ejemplo">Windows</string>
+
+    <!-- layout_seleccion_powerup -->
+    <string name="titulo_seleccion_power_up">SELECCIONA UN POWER-UP</string>
+    <string name="usos_restantes_ejemplo">Usos restantes: 5</string>
+    <string name="power_solo_pares">Solo Pares</string>
+    <string name="power_solo_impares">Solo Impares</string>
+    <string name="power_altos">Altos (4-6)</string>
+    <string name="power_bajos">Bajos (1-3)</string>
+    <string name="power_salida_maestra">Salida Maestra (Sacar 6)</string>
+    <string name="power_escudo_temporal">Escudo Temporal</string>
+    <string name="boton_cancelar_powerup">Cancelar</string>
+
+    <!-- layout_victoria -->
+    <string name="titulo_juego_terminado">¡JUEGO TERMINADO!</string>
+    <string name="ganador_ejemplo">GANADOR: ROJO</string>
+    <string name="boton_jugar_de_nuevo">Jugar de Nuevo</string>
+    <string name="boton_salir_menu">Salir al Menú</string>
 </resources>

@@ -17,7 +17,7 @@
             android:id="@+id/txtTituloLobby"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sala de Espera (Host)"
+            android:text="@string/titulo_lobby_host"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#2D3748"
@@ -36,7 +36,7 @@
                 android:id="@+id/txtIpHost"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="192.168.X.X"
+                android:text="@string/ip_ejemplo_lobby"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="#2D3748"
@@ -49,7 +49,7 @@
                 android:src="@drawable/ic_copiar"
                 app:tint="#000000"
                 android:background="@color/white"
-                android:contentDescription="Copiar IP"/>
+                android:contentDescription="@string/descripcion_copiar_ip"/>
         </LinearLayout>
 
         <LinearLayout
@@ -68,7 +68,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Rellenar con CPUs:"
+            android:text="@string/label_rellenar_cpus"
             android:textStyle="bold"
             android:textColor="#4A5568"
             android:layout_marginBottom="8dp"/>
@@ -85,7 +85,7 @@
                 android:id="@+id/rb0CPU"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
+                android:text="@string/radio_cero_cpu"
                 android:layout_marginEnd="16dp"
                 android:checked="true"/>
 
@@ -93,28 +93,28 @@
                 android:id="@+id/rb1CPU"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1 CPU"
+                android:text="@string/radio_un_cpu"
                 android:layout_marginEnd="16dp"/>
 
             <RadioButton
                 android:id="@+id/rb2CPU"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2 CPUs"
+                android:text="@string/radio_dos_cpu"
                 android:layout_marginEnd="16dp"/>
 
             <RadioButton
                 android:id="@+id/rb3CPU"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="3 CPUs"/>
+                android:text="@string/radio_tres_cpu"/>
         </RadioGroup>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnIniciarJuegoHost"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="INICIAR PARTIDA"
+            android:text="@string/boton_iniciar_partida"
             android:textStyle="bold"
             app:cornerRadius="12dp"
             app:backgroundTint="#48BB78"/>
@@ -123,7 +123,7 @@
             android:id="@+id/btnCancelarLobby"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Cancelar Sala"
+            android:text="@string/boton_cancelar_sala"
             android:background="@android:color/transparent"
             android:textColor="#E53E3E"/>
 

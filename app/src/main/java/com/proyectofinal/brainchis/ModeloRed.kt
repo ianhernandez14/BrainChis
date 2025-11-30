@@ -9,18 +9,21 @@ data class InfoJugador(
 
 enum class AccionRed {
     CONECTAR,
-    ACTUALIZAR_LOBBY, //Servidor -> Clientes (Lista de jugadores actualizada)
-    CAMBIAR_NOMBRE,   //Cliente -> Servidor (Me cambié el nombre)
+    ACTUALIZAR_LOBBY,
+    CAMBIAR_NOMBRE,
     INICIAR_PARTIDA,
     LANZAR_DADO,
     MOVER_FICHA,
     USAR_POWERUP,
     RESULTADO_BONIFICACION,
     SYNC_PUNTAJE,
-    JUGADOR_DESCONECTADO, // Alguien se fue en medio del juego
+    JUGADOR_DESCONECTADO,
     SOLICITUD_RECONEXION,
     PARTIDA_TERMINADA_POR_HOST,
-    SOLICITAR_ESTADO,     // El nuevo pide: "¿Cómo va el juego?"
+    INICIO_TRIVIA,
+    SINCRONIZAR_TIMER,
+    PING,
+    SOLICITAR_ESTADO,
     ENVIAR_ESTADO,
     DESCONEXION
 }
@@ -31,8 +34,8 @@ data class MensajeRed(
     val nombreJugador: String? = null,
 
     //Datos del Lobby
-    val listaJugadores: List<InfoJugador>? = null, //La lista completa actual
-    val cantidadCPUs: Int? = null, //Para iniciar partida con bots
+    val listaJugadores: List<InfoJugador>? = null,
+    val cantidadCPUs: Int? = null,
 
     //Datos del Juego
     val posicionFinal: Int? = null,
@@ -46,7 +49,10 @@ data class MensajeRed(
     val puntosAcumulados: Int? = null,
     val aciertosAcumulados: Int? = null,
 
-    // Enviamos la lista completa de jugadores (con sus fichas y posiciones)
+    //Enviar la lista completa de jugadores (con sus fichas y posiciones)
     val estadoJuegoCompleto: List<Jugador>? = null,
-    val turnoActual: Int? = null // Para saber a quién le toca al reconectar
+    val turnoActual: Int? = null, //Para saber a quién le toca al reconectar
+
+    val tiempoTimer: Long? = null, //Cuánto tiempo poner
+    val esParaLanzar: Boolean? = null //Qué tipo de timer es (lanzar o mover)
 )

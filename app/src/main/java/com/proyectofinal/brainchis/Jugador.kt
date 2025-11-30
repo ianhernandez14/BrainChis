@@ -10,11 +10,7 @@ data class Jugador(
     ),
     var tirosSinSeis: Int = 0,
     var usosPowerUpRestantes: Int = 5,
-
-    //Aquí guardamos el poder que activó respondiendo la trivia,
-    //esperando a que llegue el momento de aplicarlo
     var powerUpActivo: TipoPowerUp = TipoPowerUp.NINGUNO,
-
     var esIA: Boolean = false,
     var nombre: String = if(esIA) "CPU" else "Jugador",
     var aciertosTrivia: Int = 0,

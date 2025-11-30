@@ -187,7 +187,7 @@ object BancoPreguntas {
         Pregunta("¿Qué instrucción usarías para avanzar?", listOf("Girar", "Mover adelante", "Parar", "Saltar"), 1, "Programación básica"),
 
         //Condicionales
-        Pregunta("¿Qué palabra clave inicia una condición?", listOf("Loop", "If (Si)", "For", "Print"), 1, "Programación básica"),
+        Pregunta("¿Qué palabra clave inicia una condición?", listOf("Loop", "if(Si)", "For", "Print"), 1, "Programación básica"),
         Pregunta("SI llueve, ENTONCES...", listOf("Salgo a jugar", "Uso paraguas", "Riego las plantas", "Me pongo gafas de sol"), 1, "Programación básica"),
         Pregunta("SI el semáforo está rojo...", listOf("Avanzo", "Corro", "Me detengo", "Giro"), 2, "Programación básica"),
         Pregunta("¿Qué significa 'Else' (Sino)?", listOf("Lo que pasa si la condición es falsa", "Lo que pasa siempre", "El inicio del programa", "Un error"), 0, "Programación básica"),
@@ -296,10 +296,9 @@ object BancoPreguntas {
         Pregunta("Color 'Pink' es...", listOf("Morado", "Rosa", "Naranja", "Rojo"), 1, "Inglés"),
         Pregunta("Color 'Orange' es...", listOf("Rojo", "Naranja", "Amarillo", "Café"), 1, "Inglés"),
         Pregunta("Color 'Purple' es...", listOf("Rosa", "Morado", "Azul", "Negro"), 1, "Inglés"),
-
     )
 
-    fun obtenerPreguntaAleatoria(): Pregunta {
+    fun obtenerPreguntaAleatoria(): Pregunta{
         return preguntas.random()
     }
 }
