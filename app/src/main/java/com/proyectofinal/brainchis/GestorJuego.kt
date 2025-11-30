@@ -227,7 +227,6 @@ class GestorJuego
         return fichasMovibles
     }
     
-    //Aplica el movimiento definitivo de una ficha (ya validado)
     //Actualiza el estado/posición, resuelve kills y gestiona el turno
     fun moverFicha(ficha: Ficha, resultadoDado: Int)
     {
@@ -259,7 +258,8 @@ class GestorJuego
                     val casillaSalida = posicionSalida[jugadorActual.color]!!
                     ficha.estado = EstadoFicha.EN_JUEGO
                     ficha.posicionGlobal = casillaSalida
-                    seHizoKillLocal = resolverCasilla(casillaSalida, jugadorActual.color)
+                    seHizoKillLocal = resolverCasilla(casillaSalida,
+                        jugadorActual.color)
                 }
             }
             
@@ -311,8 +311,7 @@ class GestorJuego
         
         //Prioridad 1: Casilla Segura
         if(casillasSeguras.contains(ficha.posicionGlobal) &&
-                ficha.estado == EstadoFicha.EN_JUEGO &&
-                !estabaEnBase)
+                ficha.estado == EstadoFicha.EN_JUEGO && !estabaEnBase)
         {
             Log.i(TAG, "Ficha cayó en casilla segura. Ofreciendo bonificación...")
             

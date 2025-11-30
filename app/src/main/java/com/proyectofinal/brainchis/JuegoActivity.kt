@@ -1360,15 +1360,6 @@ class JuegoActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
                         
                         if(exito)
                         {
-                            val mensaje = when(tipo)
-                            {
-                                TipoPowerUp.SALIDA_MAESTRA -> "¡Correcto! Salida Maestra activada."
-                                TipoPowerUp.ESCUDO_TEMPORAL -> "¡Correcto! Escudo activado."
-                                else -> "¡Correcto! Power-Up activado."
-                            }
-                            Toast.makeText(this, mensaje,
-                                Toast.LENGTH_SHORT).show()
-                            
                             if(esModoOnline)
                             {
                                 val msg = MensajeRed(
@@ -2193,7 +2184,8 @@ class JuegoActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
             if(j.color != ficha.color)
             {
                 j.fichas.forEach { f ->
-                    if(f.posicionGlobal == destinoFinalCalculado && f.estado == EstadoFicha.EN_JUEGO)
+                    if(f.posicionGlobal == destinoFinalCalculado && f.estado ==
+                            EstadoFicha.EN_JUEGO)
                         candidatosAMorir.add(f)
                 }
             }
@@ -2239,7 +2231,7 @@ class JuegoActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
                 
                 tableroView.actualizarEstadoJuego(gestor.jugadores)
                 
-                //Verificamos si la corrutina sigue activa
+                //Verificar si la corrutina sigue activa
                 if(isActive)
                 {
                     //--- SONIDOS  ---
@@ -2378,7 +2370,7 @@ class JuegoActivity : AppCompatActivity(), Tablero.OnCasillaTocadaListener
         val btnCancelar = view.findViewById<Button>(R.id.btnCancelarSalir)
         
         if(esModoOnline && miColor == ColorJugador.ROJO)
-            txtMensaje.text = "Eres el HOST. La partida terminará para todos."
+            txtMensaje.text = "Eres el Host. La partida terminará para todos."
         else
         {
             txtMensaje.text =

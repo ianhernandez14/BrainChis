@@ -145,8 +145,10 @@ class Tablero: View
         //Dibujar cuadrícula. Primero se dibujan las líneas verticales y luego las horizontales
         for(i in 0..15)
         {
-            canvas.drawLine(i * casilla, 0f, i * casilla, ancho, gridPaint)
-            canvas.drawLine(0f, i * casilla, ancho, i * casilla, gridPaint)
+            canvas.drawLine(i * casilla, 0f, i * casilla, ancho,
+                gridPaint)
+            canvas.drawLine(0f, i * casilla, ancho, i * casilla,
+                gridPaint)
         }
 
         //Dibujar las bases de los colores
